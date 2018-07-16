@@ -106,33 +106,24 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
    */
   function buyPack() public payable {
     require(msg.value >= costOfPack);
-    require(cardSetCirculation.length >= cardsPerPack);
+    require(cardSetsInCirculation() >= cardsPerPack);
 
     // thanks CryptoStrikers!
     require(msg.sender == tx.origin);
 
     // return 4 different cards packs (that should have at least one card left)
-    uint8[4] memory randomCardSetArray = [1, 2, 3, 4];
+    uint8[4] memory randomCardSetArray = [0, 1, 2, 3]; // use proxy shuffler / randomizer
 
     for (uint i = 0; i < cardsPerPack; i++) {
-      // err
-      CardSet storage pickedSet = cardSets[randomCardSetArray[i]];
+      CardSet storage pickedSet = cardSetCirculation[randomCardSetArray[i]];
 
-      // ensure valid card set
-      require(pickedSet.totalSupply > 0);
-      require(pickedSet.minted < pickedSet.totalSupply);
-
-      pickedSet.minted = pickedSet.minted.add(1);
-      uint256 serialNumber = pickedSet.cardNumber.add(pickedSet.minted);
+      _mint(pickedSet);
 
       // remove from circulation if minted == totalSupply
       if (pickedSet.minted == pickedSet.totalSupply) {
         _removeCardSetAtIndex(randomCardSetArray[i]);
         CardSetSoldOut(pickedSet.cardNumber, uint32(now));
       }
-
-      super._mint(msg.sender, serialNumber);
-      CardMinted(msg.sender, serialNumber, pickedSet.cardName, uint32(now));
     }
 
     // reconcile payments
@@ -149,15 +140,23 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
   function transferCard(uint256 _cardNumber) public onlyOwner {
     CardSet storage cardSet = cardSets[_cardNumber];
 
+    // don't transfer last card!
+    // buyPack removes from circulation via index - we don't know index here...
+    require(cardSet.minted.add(1) < cardSet.totalSupply);
+
+    _mint(cardSet);
+  }
+
+  function _mint(CardSet storage _cardSet) internal {
     // ensure valid card set
-    require(cardSet.totalSupply > 0);
-    require(cardSet.minted.add(1) < cardSet.totalSupply); // don't transfer last card!
+    require(_cardSet.totalSupply > 0);
+    require(_cardSet.minted < _cardSet.totalSupply);
 
-    cardSet.minted = cardSet.minted.add(1);
-    uint256 serialNumber = cardSet.cardNumber.add(cardSet.minted);
+    _cardSet.minted = _cardSet.minted.add(1);
+    uint256 cardSerialNumber = _cardSet.cardNumber.add(_cardSet.minted);
 
-    super._mint(msg.sender, serialNumber);
-    CardMinted(msg.sender, serialNumber, cardSet.cardName, uint32(now));
+    super._mint(msg.sender, cardSerialNumber);
+    CardMinted(msg.sender, cardSerialNumber, _cardSet.cardName, uint32(now));
   }
 
   function _removeCardSetAtIndex(uint256 _index) internal {
@@ -195,6 +194,10 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
    */
   function tokensOf(address _owner) public view returns (uint256[] _tokenIds) {
     return ownedTokens[_owner];
+  }
+
+  function cardSetsInCirculation() public view returns (uint256 _cardSetCirculationLength) {
+    return cardSetCirculation.length;
   }
 
   /**

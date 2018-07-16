@@ -18,7 +18,7 @@ require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-contract('CBFC', function (accounts) {
+contract.only('CBFC', function (accounts) {
   const _owner = accounts[0];
 
   const _buyerOne = accounts[1];
@@ -50,4 +50,25 @@ contract('CBFC', function (accounts) {
     await this.token.addCardSet(_defaultCardSetNumberFour, 100, 'Four', 'Four', {from: _owner}); // add card set
   });
 
+  it('should have 4 card sets in circulation', async function () {
+    const numberOfSets = await this.token.cardSetsInCirculation();
+    numberOfSets.should.be.bignumber.equal(4);
+  });
+
+  describe('buy packs with ether', function () {
+
+    let _costOfPack;
+    let _cardsPerPack;
+    beforeEach(async function () {
+      _costOfPack = await this.token.costOfPack();
+      _cardsPerPack = await this.token.cardsPerPack();
+    });
+
+    it('should own x cards after buying pack', async function () {
+      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+
+      const balance = await this.token.balanceOf(_buyerOne);
+      balance.should.be.bignumber.equal(4);
+    });
+  });
 });
