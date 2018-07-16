@@ -32,7 +32,7 @@ contract('CBFC common ERC721 tests', function (accounts) {
   const _defaultCardSetNumberFour = 40000;
 
   const _defaultCardSetOneSerialNumberOne = 10001;
-  const _defaultCardSetTwoSerialNumberTwo = 20002;
+  const _defaultCardSetTwoSerialNumberTwo = 20001;
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
   const RECEIVER_MAGIC_VALUE = '0xf0b9e5ba';

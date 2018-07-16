@@ -151,7 +151,7 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
 
     // ensure valid card set
     require(cardSet.totalSupply > 0);
-    require(cardSet.minted < cardSet.totalSupply);
+    require(cardSet.minted.add(1) < cardSet.totalSupply); // don't transfer last card!
 
     cardSet.minted = cardSet.minted.add(1);
     uint256 serialNumber = cardSet.cardNumber.add(cardSet.minted);
