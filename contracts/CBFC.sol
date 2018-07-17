@@ -1,70 +1,16 @@
-pragma solidity ^0.4.21;
-
-
-import "./ERC721Token.sol";
+pragma solidity ^0.4.24;
 
 import "./Strings.sol";
 
-import "./ERC165.sol";
-
-import "./Whitelist.sol";
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
 
 /**
 * @title CBFC aka Crypto-Bands-FC
 */
-contract CBFC is ERC721Token, ERC165, Whitelist {
+contract CBFC is ERC721Token, Ownable {
   using SafeMath for uint256;
-
-  bytes4 constant InterfaceSignature_ERC165 = 0x01ffc9a7;
-  /*
-  bytes4(keccak256('supportsInterface(bytes4)'));
-  */
-
-  bytes4 constant InterfaceSignature_ERC721Enumerable = 0x780e9d63;
-  /*
-  bytes4(keccak256('totalSupply()')) ^
-  bytes4(keccak256('tokenOfOwnerByIndex(address,uint256)')) ^
-  bytes4(keccak256('tokenByIndex(uint256)'));
-  */
-
-  bytes4 constant InterfaceSignature_ERC721Metadata = 0x5b5e139f;
-  /*
-  bytes4(keccak256('name()')) ^
-  bytes4(keccak256('symbol()')) ^
-  bytes4(keccak256('tokenURI(uint256)'));
-  */
-
-  bytes4 constant InterfaceSignature_ERC721 = 0x80ac58cd;
-  /*
-  bytes4(keccak256('balanceOf(address)')) ^
-  bytes4(keccak256('ownerOf(uint256)')) ^
-  bytes4(keccak256('approve(address,uint256)')) ^
-  bytes4(keccak256('getApproved(uint256)')) ^
-  bytes4(keccak256('setApprovalForAll(address,bool)')) ^
-  bytes4(keccak256('isApprovedForAll(address,address)')) ^
-  bytes4(keccak256('transferFrom(address,address,uint256)')) ^
-  bytes4(keccak256('safeTransferFrom(address,address,uint256)')) ^
-  bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'));
-  */
-
-  bytes4 public constant InterfaceSignature_ERC721Optional = - 0x4f558e79;
-  /*
-  bytes4(keccak256('exists(uint256)'));
-  */
-
-  /**
-   * @notice Introspection interface as per ERC-165 (https://github.com/ethereum/EIPs/issues/165).
-   * @dev Returns true for any standardized interfaces implemented by this contract.
-   * @param _interfaceID bytes4 the interface to check for
-   * @return true for any standardized interfaces implemented by this contract.
-   */
-  function supportsInterface(bytes4 _interfaceID) external pure returns (bool) {
-    return ((_interfaceID == InterfaceSignature_ERC165)
-    || (_interfaceID == InterfaceSignature_ERC721)
-    || (_interfaceID == InterfaceSignature_ERC721Optional)
-    || (_interfaceID == InterfaceSignature_ERC721Enumerable)
-    || (_interfaceID == InterfaceSignature_ERC721Metadata));
-  }
 
   event CardMinted(address indexed _owner, uint256 indexed _tokenId, bytes32 _name, uint32 _mintTime);
   event CardSetSoldOut(uint256 indexed _cardNumber, uint32 _soldOutTime);
@@ -94,7 +40,6 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
   CardSet[] public cardSetCirculation;
 
   function CBFC() public ERC721Token("Crypto-Bands-FC", "CBFC") {
-    super.addAddressToWhitelist(msg.sender);
   }
 
   // can buy direct from contract if you send enough ether

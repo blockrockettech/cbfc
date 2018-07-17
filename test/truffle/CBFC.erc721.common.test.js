@@ -138,12 +138,8 @@ contract('CBFC common ERC721 tests', function (accounts) {
         });
 
         if (approved) {
-          it('emits an approval and transfer events', async function () {
-            logs.length.should.be.equal(2);
-            logs[0].event.should.be.eq('Approval');
-            logs[0].args._owner.should.be.equal(owner);
-            logs[0].args._approved.should.be.equal(ZERO_ADDRESS);
-            logs[0].args._tokenId.should.be.bignumber.equal(tokenId);
+          it('emits a transfer events', async function () {
+            logs.length.should.be.equal(1);
 
             logs[1].event.should.be.eq('Transfer');
             logs[1].args._from.should.be.equal(owner);
@@ -224,12 +220,8 @@ contract('CBFC common ERC721 tests', function (accounts) {
             approvedAccount.should.be.equal(ZERO_ADDRESS);
           });
 
-          it('emits an approval and transfer events', async function () {
-            logs.length.should.be.equal(2);
-            logs[0].event.should.be.eq('Approval');
-            logs[0].args._owner.should.be.equal(owner);
-            logs[0].args._approved.should.be.equal(ZERO_ADDRESS);
-            logs[0].args._tokenId.should.be.bignumber.equal(tokenId);
+          it('emits a transfer events', async function () {
+            logs.length.should.be.equal(1);
 
             logs[1].event.should.be.eq('Transfer');
             logs[1].args._from.should.be.equal(owner);

@@ -18,7 +18,7 @@ require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-contract.only('CBFC', function (accounts) {
+contract('CBFC', function (accounts) {
   const _owner = accounts[0];
 
   const _buyerOne = accounts[1];
