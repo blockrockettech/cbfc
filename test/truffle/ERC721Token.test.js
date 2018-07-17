@@ -746,4 +746,100 @@ contract.only('ERC721Token', function (accounts) {
       });
     });
   });
+
+  describe('like a mintable and burnable ERC721Token', function () {
+    beforeEach(async function () {
+      await this.token.mint(_owner, _cardSetOne, { from: _owner });
+      await this.token.mint(_owner, _cardSetTwo, { from: _owner });
+    });
+
+    describe('mint', function () {
+      const to = accounts[1];
+      const tokenId = _cardSetOneSerialNumberTwo; // two already minted (1 each from card set 1 & 2)
+      let logs = null;
+
+      describe('when successful', function () {
+        beforeEach(async function () {
+          const result = await this.token.mint(to, _cardSetOne);
+          logs = result.logs;
+        });
+
+        it('assigns the token to the new owner', async function () {
+          const owner = await this.token.ownerOf(tokenId);
+          owner.should.be.equal(to);
+        });
+
+        it('increases the balance of its owner', async function () {
+          const balance = await this.token.balanceOf(to);
+          balance.should.be.bignumber.equal(1);
+        });
+
+        it('emits a transfer event', async function () {
+          logs.length.should.be.equal(2);
+          logs[0].event.should.be.eq('Transfer');
+          logs[0].args._from.should.be.equal(ZERO_ADDRESS);
+          logs[0].args._to.should.be.equal(to);
+          logs[0].args._tokenId.should.be.bignumber.equal(tokenId);
+        });
+      });
+
+      describe('when the given owner address is the zero address', function () {
+        it('reverts', async function () {
+          await assertRevert(this.token.mint(ZERO_ADDRESS, tokenId));
+        });
+      });
+
+      describe('when the given token ID was already tracked by this contract', function () {
+        it('reverts', async function () {
+          await assertRevert(this.token.mint(accounts[1], _cardSetOneSerialNumberOne));
+        });
+      });
+    });
+
+    describe('burn', function () {
+      const tokenId = _cardSetOneSerialNumberOne;
+      const sender = _owner;
+      let logs = null;
+
+      describe('when successful', function () {
+        beforeEach(async function () {
+          const result = await this.token.burn(tokenId, { from: sender });
+          logs = result.logs;
+        });
+
+        it('burns the given token ID and adjusts the balance of the owner', async function () {
+          await assertRevert(this.token.ownerOf(tokenId));
+          const balance = await this.token.balanceOf(sender);
+          balance.should.be.bignumber.equal(1);
+        });
+
+        it('emits a burn event', async function () {
+          logs.length.should.be.equal(1);
+          logs[0].event.should.be.eq('Transfer');
+          logs[0].args._from.should.be.equal(sender);
+          logs[0].args._to.should.be.equal(ZERO_ADDRESS);
+          logs[0].args._tokenId.should.be.bignumber.equal(tokenId);
+        });
+      });
+
+      describe('when there is a previous approval', function () {
+        beforeEach(async function () {
+          await this.token.approve(accounts[1], tokenId, { from: sender });
+          const result = await this.token.burn(tokenId, { from: sender });
+          logs = result.logs;
+        });
+
+        it('clears the approval', async function () {
+          const approvedAccount = await this.token.getApproved(tokenId);
+          approvedAccount.should.be.equal(ZERO_ADDRESS);
+        });
+      });
+
+      describe('when the given token ID was not tracked by this contract', function () {
+        it('reverts', async function () {
+          await assertRevert(this.token.burn("999", { from: _owner }));
+        });
+      });
+    });
+  });
 });
