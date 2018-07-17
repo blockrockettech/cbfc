@@ -555,11 +555,5 @@ export default function shouldBehaveLikeERC721BasicToken (accounts) {
         });
       });
     });
-
-    // shouldSupportInterfaces([
-    //   'ERC165',
-    //   'ERC721',
-    //   'ERC721Exists',
-    // ]);
   });
 };

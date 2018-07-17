@@ -9,6 +9,7 @@ const latestTime = require('../helpers/latestTime');
 
 // const shouldBehaveLikeERC721BasicToken = require('./ERC721BasicToken.behaviour');
 // const shouldMintAndBurnERC721Token = require('./ERC721MintBurn.behaviour');
+
 const _ = require('lodash');
 
 const BigNumber = web3.BigNumber;
