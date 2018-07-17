@@ -111,17 +111,15 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
     // thanks CryptoStrikers!
     require(msg.sender == tx.origin);
 
-    // return 4 different cards packs (that should have at least one card left)
-    uint8[4] memory randomCardSetArray = [0, 1, 2, 3]; // use proxy shuffler / randomizer
-
     for (uint i = 0; i < cardsPerPack; i++) {
-      CardSet storage pickedSet = cardSetCirculation[randomCardSetArray[i]];
+      uint _index = randomCardSetIndex(i + 1);
+      CardSet storage pickedSet = cardSetCirculation[_index];
 
       _mint(pickedSet);
 
       // remove from circulation if minted == totalSupply
       if (pickedSet.minted == pickedSet.totalSupply) {
-        _removeCardSetAtIndex(randomCardSetArray[i]);
+        _removeCardSetAtIndex(_index);
         CardSetSoldOut(pickedSet.cardNumber, uint32(now));
       }
     }
@@ -160,7 +158,7 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
   }
 
   function _removeCardSetAtIndex(uint256 _index) internal {
-    uint256 lastIndex = cardSetCirculation.length - 1;
+    uint lastIndex = cardSetCirculation.length - 1;
     require(_index <= lastIndex);
 
     cardSetCirculation[_index] = cardSetCirculation[lastIndex];
@@ -196,6 +194,9 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
     return ownedTokens[_owner];
   }
 
+  /**
+   * @dev number of card sets
+   */
   function cardSetsInCirculation() public view returns (uint256 _cardSetCirculationLength) {
     return cardSetCirculation.length;
   }
@@ -217,7 +218,6 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
     costOfPack = _costOfPack;
   }
 
-
   /**
    * @dev Get token URI fro the given token, useful for testing purposes
    * @param _tokenId the token ID
@@ -234,5 +234,11 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
    */
   function setTokenBaseURI(string _newBaseURI) external onlyOwner {
     tokenBaseURI = _newBaseURI;
+  }
+
+  function randomCardSetIndex(uint _index) public view returns (uint) {
+    require(_index > 0);
+
+    return uint(block.blockhash(block.number - _index)) % cardSetsInCirculation();
   }
 }

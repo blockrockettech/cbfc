@@ -24,7 +24,6 @@ contract.only('CBFC', function (accounts) {
   const _buyerOne = accounts[1];
   const _buyerTwo = accounts[2];
 
-  const unknownTokenId = 99;
   const _defaultCardSetNumberOne = 10000;
   const _defaultCardSetNumberTwo = 20000;
   const _defaultCardSetNumberThree = 30000;
@@ -34,7 +33,6 @@ contract.only('CBFC', function (accounts) {
   const _defaultCardSetTwoSerialNumberTwo = 20002;
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-  const RECEIVER_MAGIC_VALUE = '0xf0b9e5ba';
 
   before(async function () {
     // Advance to the next block to correctly read time in the solidity "now" function interpreted by testrpc
@@ -43,16 +41,6 @@ contract.only('CBFC', function (accounts) {
 
   beforeEach(async function () {
     this.token = await CBFC.new({from: _owner});
-
-    await this.token.addCardSet(_defaultCardSetNumberOne, 100, 'One', 'One', {from: _owner}); // add card set
-    await this.token.addCardSet(_defaultCardSetNumberTwo, 100, 'Two', 'Two', {from: _owner}); // add card set
-    await this.token.addCardSet(_defaultCardSetNumberThree, 100, 'Three', 'Three', {from: _owner}); // add card set
-    await this.token.addCardSet(_defaultCardSetNumberFour, 100, 'Four', 'Four', {from: _owner}); // add card set
-  });
-
-  it('should have 4 card sets in circulation', async function () {
-    const numberOfSets = await this.token.cardSetsInCirculation();
-    numberOfSets.should.be.bignumber.equal(4);
   });
 
   describe('buy packs with ether', function () {
@@ -62,6 +50,16 @@ contract.only('CBFC', function (accounts) {
     beforeEach(async function () {
       _costOfPack = await this.token.costOfPack();
       _cardsPerPack = await this.token.cardsPerPack();
+
+      await this.token.addCardSet(_defaultCardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
+      await this.token.addCardSet(_defaultCardSetNumberTwo, 8, 'Two', 'Two', {from: _owner}); // add card set
+      await this.token.addCardSet(_defaultCardSetNumberThree, 8, 'Three', 'Three', {from: _owner}); // add card set
+      await this.token.addCardSet(_defaultCardSetNumberFour, 8, 'Four', 'Four', {from: _owner}); // add card set
+    });
+
+    it('should have 4 card sets in circulation', async function () {
+      const numberOfSets = await this.token.cardSetsInCirculation();
+      numberOfSets.should.be.bignumber.equal(4);
     });
 
     it('should own x cards after buying pack', async function () {
@@ -69,6 +67,28 @@ contract.only('CBFC', function (accounts) {
 
       const balance = await this.token.balanceOf(_buyerOne);
       balance.should.be.bignumber.equal(4);
+    });
+
+    it('should remove cardset once supply is exhausted', async function () {
+      const cardSetTotal = await this.token.cardSetsInCirculation();
+      cardSetTotal.should.be.bignumber.equal(4);
+
+      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+
+      const postCardSetTotal = await this.token.cardSetsInCirculation();
+      // postCardSetTotal.should.be.bignumber.equal(0);
+      console.log(`circulation ${postCardSetTotal}`);
+
+      const cards = await this.token.tokensOf(_buyerOne);
+      console.log(`cards ${cards}`);
+    });
+
+    it('should return random card set index', async function () {
+      for (let i = 0; i < 10; i++) {
+        let random = await this.token.randomCardSetIndex(i + 1);
+        console.log(`RAND ${random}`);
+      }
     });
   });
 });
