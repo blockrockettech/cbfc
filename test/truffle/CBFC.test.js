@@ -43,6 +43,43 @@ contract.only('CBFC', function (accounts) {
     this.token = await CBFC.new({from: _owner});
   });
 
+  describe('remove packs when exhausted', function () {
+
+    let _costOfPack;
+    let _cardsPerPack;
+    beforeEach(async function () {
+      _costOfPack = await this.token.costOfPack();
+      _cardsPerPack = await this.token.cardsPerPack();
+
+      await this.token.addCardSet(_defaultCardSetNumberOne, 4, 'One', 'One', {from: _owner}); // add card set
+      await this.token.addCardSet(_defaultCardSetNumberTwo, 4, 'Two', 'Two', {from: _owner}); // add card set
+      await this.token.addCardSet(_defaultCardSetNumberThree, 4, 'Three', 'Three', {from: _owner}); // add card set
+    });
+
+    it('should have 3 card sets in circulation ', async function () {
+      const numberOfSets = await this.token.cardSetsInCirculation();
+      numberOfSets.should.be.bignumber.equal(3);
+
+      const totalCirculation = await this.token.totalCardsInCirculation();
+      totalCirculation.should.be.bignumber.equal(12);
+    });
+
+    it('should own all cards after buying packs, all cards should be exhausted and no card sets in circulation', async function () {
+      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+
+      const balance = await this.token.balanceOf(_buyerOne);
+      balance.should.be.bignumber.equal(12);
+
+      const numberOfSets = await this.token.cardSetsInCirculation();
+      numberOfSets.should.be.bignumber.equal(0);
+
+      const totalSold = await this.token.totalCardsInCirculationSold();
+      totalSold.should.be.bignumber.equal(12);
+    });
+  });
+
   describe('buy packs with ether', function () {
 
     let _costOfPack;

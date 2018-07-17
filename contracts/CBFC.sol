@@ -74,6 +74,9 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
   uint256 public costOfPack = 0.01 ether;
   uint8 constant public cardsPerPack = 4;
 
+  uint256 public totalCardsInCirculation = 0;
+  uint256 public totalCardsInCirculationSold = 0;
+
   struct CardSet {
     uint256 cardNumber;
     uint256 totalSupply;
@@ -99,6 +102,8 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
     CardSet memory newCardSet = CardSet(_cardNumber, _totalSupply, 0, _cardName, _cardUri);
     cardSets[_cardNumber] = newCardSet;
     cardSetCirculation.push(newCardSet);
+
+    totalCardsInCirculation = totalCardsInCirculation.add(_totalSupply);
   }
 
   /**
@@ -106,7 +111,6 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
    */
   function buyPack() public payable {
     require(msg.value >= costOfPack);
-    require(cardSetsInCirculation() >= cardsPerPack);
 
     // thanks CryptoStrikers!
     require(msg.sender == tx.origin);
@@ -123,6 +127,8 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
         CardSetSoldOut(pickedSet.cardNumber, uint32(now));
       }
     }
+
+    totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
 
     // reconcile payments
     owner.transfer(costOfPack);
@@ -142,13 +148,15 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
     // buyPack removes from circulation via index - we don't know index here...
     require(cardSet.minted.add(1) < cardSet.totalSupply);
 
+    totalCardsInCirculationSold = totalCardsInCirculationSold.add(1);
+
     _mint(cardSet);
   }
 
   function _mint(CardSet storage _cardSet) internal {
     // ensure valid card set
     require(_cardSet.totalSupply > 0);
-    require(_cardSet.minted < _cardSet.totalSupply);
+    require(_cardSet.minted <= _cardSet.totalSupply);
 
     _cardSet.minted = _cardSet.minted.add(1);
     uint256 cardSerialNumber = _cardSet.cardNumber.add(_cardSet.minted);
