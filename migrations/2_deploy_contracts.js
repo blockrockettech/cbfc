@@ -6,7 +6,7 @@ let mnemonic = require('../mnemonic');
 
 module.exports = function (deployer, network, accounts) {
 
-  console.log(`Deploying InterfaceToken contract to ${network}...`);
+  console.log(`Deploying CBFC contract to ${network}...`);
 
   let _owner = accounts[0];
 
@@ -21,5 +21,5 @@ module.exports = function (deployer, network, accounts) {
 
   console.log(`_owner = ${_owner}`);
 
-  deployer.deploy(CBFC)
+  deployer.deploy(CBFC);
 };

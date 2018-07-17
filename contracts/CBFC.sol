@@ -68,7 +68,7 @@ contract CBFC is ERC721Token, Ownable {
       uint _index = randomCardSetIndex(i + 1);
       CardSet storage pickedSet = cardSetCirculation[_index];
 
-      _mint(pickedSet);
+      _mint(msg.sender, pickedSet);
 
       // remove from circulation if minted == totalSupply
       if (pickedSet.minted == pickedSet.totalSupply) {
@@ -100,7 +100,7 @@ contract CBFC is ERC721Token, Ownable {
       uint _index = randomCardSetIndex(i + 1);
       CardSet storage pickedSet = cardSetCirculation[_index];
 
-      _mint(pickedSet);
+      _mint(msg.sender, pickedSet);
 
       // remove from circulation if minted == totalSupply
       if (pickedSet.minted == pickedSet.totalSupply) {
@@ -114,10 +114,11 @@ contract CBFC is ERC721Token, Ownable {
   }
 
   /**
-   * @dev Buys a pack of CBFC cards
+   * @dev mints a single CBFC card
+   * @param _to who will get the card
    * @param _cardNumber card number of the card set to transfer
    */
-  function transferCard(uint256 _cardNumber) public onlyOwner {
+  function mint(address _to, uint256 _cardNumber) public onlyOwner {
     CardSet storage cardSet = cardSets[_cardNumber];
 
     // don't transfer last card!
@@ -126,10 +127,10 @@ contract CBFC is ERC721Token, Ownable {
 
     totalCardsInCirculationSold = totalCardsInCirculationSold.add(1);
 
-    _mint(cardSet);
+    _mint(_to, cardSet);
   }
 
-  function _mint(CardSet storage _cardSet) internal {
+  function _mint(address _to, CardSet storage _cardSet) internal {
     // ensure valid card set
     require(_cardSet.totalSupply > 0);
     require(_cardSet.minted <= _cardSet.totalSupply);
@@ -137,8 +138,10 @@ contract CBFC is ERC721Token, Ownable {
     _cardSet.minted = _cardSet.minted.add(1);
     uint256 cardSerialNumber = _cardSet.cardNumber.add(_cardSet.minted);
 
-    super._mint(msg.sender, cardSerialNumber);
-    CardMinted(msg.sender, cardSerialNumber, _cardSet.cardName, uint32(now));
+    super._mint(_to, cardSerialNumber);
+    super._setTokenURI(cardSerialNumber, _cardSet.cardURI);
+
+    CardMinted(_to, cardSerialNumber, _cardSet.cardName, uint32(now));
   }
 
   function _removeCardSetAtIndex(uint256 _index) internal {
@@ -147,6 +150,11 @@ contract CBFC is ERC721Token, Ownable {
 
     cardSetCirculation[_index] = cardSetCirculation[lastIndex];
     cardSetCirculation.length--;
+  }
+
+
+  function burn(uint256 _tokenId) public {
+    super._burn(ownerOf(_tokenId), _tokenId);
   }
 
   /**
@@ -196,7 +204,7 @@ contract CBFC is ERC721Token, Ownable {
    * @return the token ID or only the base URI if not found
    */
   function tokenURI(uint256 _tokenId) public view returns (string) {
-    return Strings.strConcat(tokenBaseURI, tokenURIs[_tokenId]);
+    return Strings.strConcat(tokenBaseURI, super.tokenURI(_tokenId));
   }
 
   /**
