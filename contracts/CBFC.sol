@@ -66,8 +66,10 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
     || (_interfaceID == InterfaceSignature_ERC721Metadata));
   }
 
-  event CardMinted(address indexed _owner, uint256 indexed _tokenId, bytes32 _name, uint32 mintTime);
-  event CardSetSoldOut(uint256 indexed cardNumber, uint32 soldOutTime);
+  event CardMinted(address indexed _owner, uint256 indexed _tokenId, bytes32 _name, uint32 _mintTime);
+  event CardSetSoldOut(uint256 indexed _cardNumber, uint32 _soldOutTime);
+  event CardPackBought(address indexed _owner, uint32 _boughtTime);
+  event CardPackRedeemed(address indexed _owner, uint32 _giftTime);
 
   string internal tokenBaseURI = "https://ipfs.infura.io/ipfs/";
 
@@ -76,6 +78,8 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
 
   uint256 public totalCardsInCirculation = 0;
   uint256 public totalCardsInCirculationSold = 0;
+
+  mapping(address => uint) public credits;
 
   struct CardSet {
     uint256 cardNumber;
@@ -135,6 +139,33 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
 
     // give back the change - if any
     msg.sender.transfer(msg.value - costOfPack);
+    CardPackBought(msg.sender, uint32(now));
+  }
+
+  /**
+   * @dev Redeem a pack of CBFC cards (via a credit)
+   */
+  function redeemPack() public {
+    require(credits[msg.sender] > 0);
+
+    // thanks CryptoStrikers!
+    require(msg.sender == tx.origin);
+
+    for (uint i = 0; i < cardsPerPack; i++) {
+      uint _index = randomCardSetIndex(i + 1);
+      CardSet storage pickedSet = cardSetCirculation[_index];
+
+      _mint(pickedSet);
+
+      // remove from circulation if minted == totalSupply
+      if (pickedSet.minted == pickedSet.totalSupply) {
+        _removeCardSetAtIndex(_index);
+        CardSetSoldOut(pickedSet.cardNumber, uint32(now));
+      }
+    }
+
+    totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
+    CardPackRedeemed(msg.sender, uint32(now));
   }
 
   /**
@@ -173,27 +204,6 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
     cardSetCirculation.length--;
   }
 
-  //  /**
-  //   * @dev Purchases multiple new InterfaceToken tokens
-  //   * @dev Reverts if not called by curator
-  //   * @param _nickname char stamp of token owner
-  //   */
-  //  function giftPack() public payable {
-  //    require(msg.value >= costOfPack);
-  //
-  //    uint i = 0;
-  //    for (i; i < cardsPerPack; i++) {
-  //      super._mint(msg.sender, _tokenId);
-  //      CardMinted(msg.sender, _tokenId, "name");
-  //    }
-  //
-  //    // reconcile payments
-  //    owner.transfer(costOfPack);
-  //
-  //    // give back the change - if any
-  //    msg.sender.transfer(msg.value - costOfPack);
-  //  }
-
   /**
    * @dev Return owned tokens
    * @param _owner address to query
@@ -224,6 +234,15 @@ contract CBFC is ERC721Token, ERC165, Whitelist {
    */
   function setCostOfPack(uint256 _costOfPack) external onlyOwner {
     costOfPack = _costOfPack;
+  }
+
+  /**
+   * @dev Utility function to credit address with packs they can redeem
+   * @dev Reverts if not called by owner
+   * @param _recipient receiver of credit
+   */
+  function addCredit(address _recipient) external onlyOwner {
+    credits[_recipient] = credits[_recipient].add(1);
   }
 
   /**
