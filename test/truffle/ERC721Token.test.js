@@ -2,16 +2,11 @@ const assertRevert = require('../helpers/assertRevert');
 const sendTransaction = require('../helpers/sendTransaction').sendTransaction;
 
 const advanceBlock = require('../helpers/advanceToBlock');
-// const decodeLogs = require('../helpers/decodeLogs');
-
-// const shouldMintAndBurnERC721Token = require('./ERC721MintBurn.behaviour');
-
-const ERC721Receiver = artifacts.require('ERC721ReceiverMock.sol');
 
 const _ = require('lodash');
 
 const BigNumber = web3.BigNumber;
-const CBFC = artifacts.require('CBFC');
+const KOTA = artifacts.require('KOTA');
 
 require('chai')
   .use(require('chai-as-promised'))
@@ -29,8 +24,8 @@ contract.only('ERC721Token', function (accounts) {
   const _cardSetTwoSerialNumberOne = 20001;
   const _cardSetTwoSerialNumberTwo = 20002;
 
-  const name = 'Crypto-Bands-FC';
-  const symbol = 'CBFC';
+  const name = 'KOTA';
+  const symbol = 'KOTA';
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
   const RECEIVER_MAGIC_VALUE = '0x150b7a02';
@@ -41,14 +36,11 @@ contract.only('ERC721Token', function (accounts) {
   });
 
   beforeEach(async function () {
-    this.token = await CBFC.new({from: _owner});
+    this.token = await KOTA.new({from: _owner});
 
     await this.token.addCardSet(_cardSetOne, 10, 'One', 'One', {from: _owner}); // add card set with supply of 10
     await this.token.addCardSet(_cardSetTwo, 10, 'Two', 'Two', {from: _owner}); // add card set with supply of 10
   });
-
-  // shouldBehaveLikeERC721BasicToken(accounts);
-  // shouldMintAndBurnERC721Token(accounts);
 
   describe('like a full ERC721', function () {
     beforeEach(async function () {
@@ -459,52 +451,6 @@ contract.only('ERC721Token', function (accounts) {
           describe('to a user account', function () {
             shouldTransferTokensByUsers(transferFun);
           });
-
-          describe('to a valid receiver contract', function () {
-            beforeEach(async function () {
-              this.receiver = await ERC721Receiver.new(RECEIVER_MAGIC_VALUE, false);
-              this.to = this.receiver.address;
-            });
-
-            shouldTransferTokensByUsers(transferFun);
-
-            // FIXME decodeLogs !?
-            // it('should call onERC721Received', async function () {
-            //   const result = await transferFun.call(this, owner, this.to, tokenId, {from: owner});
-            //   result.receipt.logs.length.should.be.equal(2);
-            //   const [log] = decodeLogs([result.receipt.logs[1]], ERC721Receiver, this.receiver.address);
-            //   log.event.should.be.eq('Received');
-            //   log.args._operator.should.be.equal(owner);
-            //   log.args._from.should.be.equal(owner);
-            //   log.args._tokenId.toNumber().should.be.equal(tokenId);
-            //   log.args._data.should.be.equal(data);
-            // });
-            //
-            // it('should call onERC721Received from approved', async function () {
-            //   const result = await transferFun.call(this, owner, this.to, tokenId, {from: approved});
-            //   result.receipt.logs.length.should.be.equal(2);
-            //   const [log] = decodeLogs([result.receipt.logs[1]], ERC721Receiver, this.receiver.address);
-            //   log.event.should.be.eq('Received');
-            //   log.args._operator.should.be.equal(approved);
-            //   log.args._from.should.be.equal(owner);
-            //   log.args._tokenId.toNumber().should.be.equal(tokenId);
-            //   log.args._data.should.be.equal(data);
-            // });
-
-            describe('with an invalid token id', function () {
-              it('reverts', async function () {
-                await assertRevert(
-                  transferFun.call(
-                    this,
-                    owner,
-                    this.to,
-                    "999",
-                    {from: owner},
-                  )
-                );
-              });
-            });
-          });
         };
 
         describe('with data', function () {
@@ -515,19 +461,19 @@ contract.only('ERC721Token', function (accounts) {
           shouldTransferSafely(safeTransferFromWithoutData, '0x');
         });
 
-        describe('to a receiver contract returning unexpected value', function () {
-          it('reverts', async function () {
-            const invalidReceiver = await ERC721Receiver.new('0x42', false);
-            await assertRevert(this.token.safeTransferFrom(owner, invalidReceiver.address, tokenId, {from: owner}));
-          });
-        });
-
-        describe('to a receiver contract that throws', function () {
-          it('reverts', async function () {
-            const invalidReceiver = await ERC721Receiver.new(RECEIVER_MAGIC_VALUE, true);
-            await assertRevert(this.token.safeTransferFrom(owner, invalidReceiver.address, tokenId, {from: owner}));
-          });
-        });
+        // describe('to a receiver contract returning unexpected value', function () {
+        //   it('reverts', async function () {
+        //     const invalidReceiver = await ERC721Receiver.new('0x42', false);
+        //     await assertRevert(this.token.safeTransferFrom(owner, invalidReceiver.address, tokenId, {from: owner}));
+        //   });
+        // });
+        //
+        // describe('to a receiver contract that throws', function () {
+        //   it('reverts', async function () {
+        //     const invalidReceiver = await ERC721Receiver.new(RECEIVER_MAGIC_VALUE, true);
+        //     await assertRevert(this.token.safeTransferFrom(owner, invalidReceiver.address, tokenId, {from: owner}));
+        //   });
+        // });
 
         describe('to a contract that does not implement the required function', function () {
           it('reverts', async function () {

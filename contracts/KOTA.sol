@@ -7,9 +7,9 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
 
 /**
-* @title CBFC aka Crypto-Bands-FC
+* @title KOTA aka KnownOrigin Trading Assets
 */
-contract CBFC is ERC721Token, Ownable {
+contract KOTA is ERC721Token, Ownable {
   using SafeMath for uint256;
 
   event CardMinted(address indexed _owner, uint256 indexed _tokenId, bytes32 _name, uint32 _mintTime);
@@ -39,7 +39,7 @@ contract CBFC is ERC721Token, Ownable {
 
   CardSet[] public cardSetCirculation;
 
-  function CBFC() public ERC721Token("Crypto-Bands-FC", "CBFC") {
+  constructor() public ERC721Token("KOTA", "KOTA") {
   }
 
   // can buy direct from contract if you send enough ether
@@ -73,7 +73,7 @@ contract CBFC is ERC721Token, Ownable {
       // remove from circulation if minted == totalSupply
       if (pickedSet.minted == pickedSet.totalSupply) {
         _removeCardSetAtIndex(_index);
-        CardSetSoldOut(pickedSet.cardNumber, uint32(now));
+        emit CardSetSoldOut(pickedSet.cardNumber, uint32(now));
       }
     }
 
@@ -84,7 +84,7 @@ contract CBFC is ERC721Token, Ownable {
 
     // give back the change - if any
     msg.sender.transfer(msg.value - costOfPack);
-    CardPackBought(msg.sender, uint32(now));
+    emit CardPackBought(msg.sender, uint32(now));
   }
 
   /**
@@ -105,12 +105,12 @@ contract CBFC is ERC721Token, Ownable {
       // remove from circulation if minted == totalSupply
       if (pickedSet.minted == pickedSet.totalSupply) {
         _removeCardSetAtIndex(_index);
-        CardSetSoldOut(pickedSet.cardNumber, uint32(now));
+        emit CardSetSoldOut(pickedSet.cardNumber, uint32(now));
       }
     }
 
     totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
-    CardPackRedeemed(msg.sender, uint32(now));
+    emit CardPackRedeemed(msg.sender, uint32(now));
   }
 
   /**
@@ -141,7 +141,7 @@ contract CBFC is ERC721Token, Ownable {
     super._mint(_to, cardSerialNumber);
     super._setTokenURI(cardSerialNumber, _cardSet.cardURI);
 
-    CardMinted(_to, cardSerialNumber, _cardSet.cardName, uint32(now));
+    emit CardMinted(_to, cardSerialNumber, _cardSet.cardName, uint32(now));
   }
 
   function _removeCardSetAtIndex(uint256 _index) internal {
@@ -219,6 +219,6 @@ contract CBFC is ERC721Token, Ownable {
   function randomCardSetIndex(uint _index) public view returns (uint) {
     require(_index > 0);
 
-    return uint(block.blockhash(block.number - _index)) % cardSetsInCirculation();
+    return uint(blockhash(block.number - _index)) % cardSetsInCirculation();
   }
 }

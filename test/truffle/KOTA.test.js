@@ -8,14 +8,14 @@ const _ = require('lodash');
 
 const BigNumber = web3.BigNumber;
 
-const CBFC = artifacts.require('CBFC');
+const KOTA = artifacts.require('KOTA');
 
 require('chai')
   .use(require('chai-as-promised'))
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-contract('CBFC', function (accounts) {
+contract('KOTA', function (accounts) {
   const _owner = accounts[0];
 
   const _buyerOne = accounts[1];
@@ -37,7 +37,7 @@ contract('CBFC', function (accounts) {
   });
 
   beforeEach(async function () {
-    this.token = await CBFC.new({from: _owner});
+    this.token = await KOTA.new({from: _owner});
   });
 
   describe('remove packs when exhausted', function () {

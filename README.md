@@ -1,8 +1,8 @@
 
 
-<h1 align="center">CRYPTO-BANDS-FC</h1>
+<h1 align="center">KOTA</h1>
 <div align="center">
-  Music vs Football
+  KnownOrigin Trading Assets
 </div>
 
 <br />

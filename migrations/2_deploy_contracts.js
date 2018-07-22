@@ -1,4 +1,4 @@
-const CBFC = artifacts.require('CBFC');
+const KOTA = artifacts.require('KOTA');
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const infuraApikey = 'nbCbdzC6IG9CF6hmvAVQ';
@@ -6,7 +6,7 @@ let mnemonic = require('../mnemonic');
 
 module.exports = function (deployer, network, accounts) {
 
-  console.log(`Deploying CBFC contract to ${network}...`);
+  console.log(`Deploying KOTA contract to ${network}...`);
 
   let _owner = accounts[0];
 
@@ -21,5 +21,5 @@ module.exports = function (deployer, network, accounts) {
 
   console.log(`_owner = ${_owner}`);
 
-  deployer.deploy(CBFC);
+  deployer.deploy(KOTA);
 };
