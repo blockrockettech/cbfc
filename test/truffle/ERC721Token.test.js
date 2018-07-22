@@ -13,7 +13,7 @@ require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-contract.only('ERC721Token', function (accounts) {
+contract('ERC721Token', function (accounts) {
   const _owner = accounts[0];
 
   const _cardSetOne = 10000;

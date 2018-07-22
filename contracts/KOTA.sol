@@ -24,6 +24,7 @@ contract KOTA is ERC721Token, Ownable {
 
   uint256 public totalCardsInCirculation = 0;
   uint256 public totalCardsInCirculationSold = 0;
+  uint256 internal randNonce = 0;
 
   mapping(address => uint) public credits;
 
@@ -219,6 +220,8 @@ contract KOTA is ERC721Token, Ownable {
   function randomCardSetIndex(uint _index) public view returns (uint) {
     require(_index > 0);
 
-    return uint(blockhash(block.number - _index)) % cardSetsInCirculation();
+    randNonce = randNonce.add(1);
+    bytes memory packed = abi.encodePacked(blockhash(block.number - _index), msg.sender, randNonce);
+    return uint256(keccak256(packed)) % cardSetsInCirculation();
   }
 }
