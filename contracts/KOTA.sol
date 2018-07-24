@@ -57,65 +57,7 @@ contract KOTA is ERC721Token, Ownable {
   }
 
   /**
-   * @dev Buys a pack of CBFC cards
-   */
-  function buyPack() public payable {
-    require(msg.value >= costOfPack);
-
-    // thanks CryptoStrikers!
-    require(msg.sender == tx.origin);
-
-    for (uint i = 0; i < cardsPerPack; i++) {
-      uint _index = randomCardSetIndex(i + 1);
-      CardSet storage pickedSet = cardSetCirculation[_index];
-
-      _mint(msg.sender, pickedSet);
-
-      // remove from circulation if minted == totalSupply
-      if (pickedSet.minted == pickedSet.totalSupply) {
-        _removeCardSetAtIndex(_index);
-        emit CardSetSoldOut(pickedSet.cardNumber, uint32(now));
-      }
-    }
-
-    totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
-
-    // reconcile payments
-    owner.transfer(costOfPack);
-
-    // give back the change - if any
-    msg.sender.transfer(msg.value - costOfPack);
-    emit CardPackBought(msg.sender, uint32(now));
-  }
-
-  /**
-   * @dev Redeem a pack of CBFC cards (via a credit)
-   */
-  function redeemPack() public {
-    require(credits[msg.sender] > 0);
-
-    // thanks CryptoStrikers!
-    require(msg.sender == tx.origin);
-
-    for (uint i = 0; i < cardsPerPack; i++) {
-      uint _index = randomCardSetIndex(i + 1);
-      CardSet storage pickedSet = cardSetCirculation[_index];
-
-      _mint(msg.sender, pickedSet);
-
-      // remove from circulation if minted == totalSupply
-      if (pickedSet.minted == pickedSet.totalSupply) {
-        _removeCardSetAtIndex(_index);
-        emit CardSetSoldOut(pickedSet.cardNumber, uint32(now));
-      }
-    }
-
-    totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
-    emit CardPackRedeemed(msg.sender, uint32(now));
-  }
-
-  /**
-   * @dev mints a single CBFC card
+   * @dev mints a single card
    * @param _to who will get the card
    * @param _cardNumber card number of the card set to transfer
    */
@@ -131,31 +73,36 @@ contract KOTA is ERC721Token, Ownable {
     _mint(_to, cardSet);
   }
 
-  function _mint(address _to, CardSet storage _cardSet) internal {
-    // ensure valid card set
-    require(_cardSet.totalSupply > 0);
-    require(_cardSet.minted <= _cardSet.totalSupply);
+  /**
+   * @dev Buys a pack of cards
+   */
+  function buyPack() public payable {
+    require(msg.value >= costOfPack);
 
-    _cardSet.minted = _cardSet.minted.add(1);
-    uint256 cardSerialNumber = _cardSet.cardNumber.add(_cardSet.minted);
+    _randomPack();
 
-    super._mint(_to, cardSerialNumber);
-    super._setTokenURI(cardSerialNumber, _cardSet.cardURI);
+    // reconcile payments
+    owner.transfer(costOfPack);
 
-    emit CardMinted(_to, cardSerialNumber, _cardSet.cardName, uint32(now));
+    // give back the change - if any
+    msg.sender.transfer(msg.value - costOfPack);
+    // fixme not inline?
+    emit CardPackBought(msg.sender, uint32(now));
   }
 
-  function _removeCardSetAtIndex(uint256 _index) internal {
-    uint lastIndex = cardSetCirculation.length - 1;
-    require(_index <= lastIndex);
+  /**
+   * @dev Redeem a pack of cards (via a credit)
+   */
+  function redeemPack() public {
+    require(credits[msg.sender] > 0);
 
-    cardSetCirculation[_index] = cardSetCirculation[lastIndex];
-    cardSetCirculation.length--;
+    _randomPack();
+
+    emit CardPackRedeemed(msg.sender, uint32(now));
   }
-
 
   function burn(uint256 _tokenId) public {
-    super._burn(ownerOf(_tokenId), _tokenId);
+    super._burn(msg.sender, _tokenId);
   }
 
   /**
@@ -217,11 +164,53 @@ contract KOTA is ERC721Token, Ownable {
     tokenBaseURI = _newBaseURI;
   }
 
-  function randomCardSetIndex(uint _index) public view returns (uint) {
+  function _randomCardSetIndex(uint _index) internal returns (uint) {
     require(_index > 0);
 
     randNonce = randNonce.add(1);
     bytes memory packed = abi.encodePacked(blockhash(block.number - _index), msg.sender, randNonce);
     return uint256(keccak256(packed)) % cardSetsInCirculation();
+  }
+
+  function _randomPack() internal {
+    // thanks CryptoStrikers!
+    require(msg.sender == tx.origin);
+
+    for (uint i = 0; i < cardsPerPack; i++) {
+      uint _index = _randomCardSetIndex(i + 1);
+      CardSet storage pickedSet = cardSetCirculation[_index];
+
+      _mint(msg.sender, pickedSet);
+
+      // remove from circulation if minted == totalSupply
+      if (pickedSet.minted == pickedSet.totalSupply) {
+        _removeCardSetAtIndex(_index);
+        emit CardSetSoldOut(pickedSet.cardNumber, uint32(now));
+      }
+    }
+
+    totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
+  }
+
+  function _mint(address _to, CardSet storage _cardSet) internal {
+    // ensure valid card set
+    require(_cardSet.totalSupply > 0);
+    require(_cardSet.minted <= _cardSet.totalSupply);
+
+    _cardSet.minted = _cardSet.minted.add(1);
+    uint256 cardSerialNumber = _cardSet.cardNumber.add(_cardSet.minted);
+
+    super._mint(_to, cardSerialNumber);
+    super._setTokenURI(cardSerialNumber, _cardSet.cardURI);
+
+    emit CardMinted(_to, cardSerialNumber, _cardSet.cardName, uint32(now));
+  }
+
+  function _removeCardSetAtIndex(uint256 _index) internal {
+    uint lastIndex = cardSetCirculation.length - 1;
+    require(_index <= lastIndex);
+
+    cardSetCirculation[_index] = cardSetCirculation[lastIndex];
+    cardSetCirculation.length--;
   }
 }

@@ -15,19 +15,19 @@ require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-contract.only('KOTA', function (accounts) {
+contract('KOTA', function (accounts) {
   const _owner = accounts[0];
 
   const _buyerOne = accounts[1];
   const _buyerTwo = accounts[2];
 
-  const _defaultCardSetNumberOne = 10000;
-  const _defaultCardSetNumberTwo = 20000;
-  const _defaultCardSetNumberThree = 30000;
-  const _defaultCardSetNumberFour = 40000;
+  const _defaultCardSetNumberOne = 1000;
+  const _defaultCardSetNumberTwo = 2000;
+  const _defaultCardSetNumberThree = 3000;
+  const _defaultCardSetNumberFour = 4000;
 
-  const _defaultCardSetOneSerialNumberOne = 10001;
-  const _defaultCardSetTwoSerialNumberTwo = 20002;
+  const _defaultCardSetOneSerialNumberOne = 1001;
+  const _defaultCardSetTwoSerialNumberTwo = 2002;
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -118,11 +118,11 @@ contract.only('KOTA', function (accounts) {
       console.log(`cards ${cards}`);
     });
 
-    it('should return random card set index', async function () {
-      for (let i = 0; i < 10; i++) {
-        let random = await this.token.randomCardSetIndex(i + 1);
-        console.log(`RAND ${random}`);
-      }
-    });
+    // it('should return random card set index', async function () {
+    //   for (let i = 0; i < 10; i++) {
+    //     let random = await this.token.randomCardSetIndex(i + 1);
+    //     console.log(`RAND ${random}`);
+    //   }
+    // });
   });
 });
