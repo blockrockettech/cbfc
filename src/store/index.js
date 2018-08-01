@@ -8,11 +8,9 @@ import createLogger from 'vuex/dist/logger';
 import {getEtherscanAddress, getNetIdString} from '../utils';
 import contract from 'truffle-contract';
 
-import dARTJson from '../../build/contracts/InterfaceToken.json';
-import simpleArtistContractJson from '../../build/contracts/SimpleArtistContract.json';
+import kotaJson from '../../build/contracts/KOTA.json';
 
-const dart = contract(dARTJson);
-const simpleArtistContract = contract(simpleArtistContractJson);
+const kota = contract(kotaJson);
 
 Vue.use(Vuex);
 
@@ -31,39 +29,14 @@ const store = new Vuex.Store({
     contractName: '',
     contractSymbol: '',
     contractAddress: '',
-
-    simpleArtistContractOwner: '',
-    simpleArtistContractAddress: '',
-    simpleArtistContractBalance: null,
+    owner: '',
 
     // contract totals
     totalSupply: null,
-
-    pricePerBlockInWei: null,
-    pricePerBlockInEth: null,
-    maxBlockPurchaseInOneGo: null,
-
-    // contract addresses
-    curatorAddress: null,
-    assets: [],
-
-    hash: null,
-    blocknumber: null,
-    nextBlockToFund: null,
-    hashes: {}
+    costOfPack: null,
+    cardsPerPack: null,
   },
-  getters: {
-    assetByTokenId: (state) => (tokenId) => {
-      return _.find(state.assets, (asset) => asset.tokenId.toString() === tokenId.toString());
-    },
-    getHashMatch: (state) => (blockhash) => {
-      let matchAsset = _.find(state.assets, {blockhash: blockhash});
-      if (!matchAsset) {
-        return false;
-      }
-      return matchAsset;
-    }
-  },
+  getters: {},
   mutations: {
     [mutations.SET_ALL_ASSETS](state, assets) {
       Vue.set(state, 'assets', state.assets);
@@ -77,12 +50,14 @@ const store = new Vuex.Store({
     [mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT](state, tokens) {
       Vue.set(state, 'assetsPurchasedByAccount', tokens);
     },
-    [mutations.SET_CONTRACT_DETAILS](state, {name, symbol, totalSupply, curatorAddress, contractAddress}) {
+    [mutations.SET_CONTRACT_DETAILS](state, {name, symbol, totalSupply, owner, contractAddress, costOfPack, cardsPerPack}) {
       state.totalSupply = totalSupply;
       state.contractSymbol = symbol;
       state.contractName = name;
-      state.curatorAddress = curatorAddress;
+      state.owner = owner;
       state.contractAddress = contractAddress;
+      state.costOfPack = costOfPack;
+      state.cardsPerPack = cardsPerPack;
     },
     [mutations.SET_ARTIST_CONTRACT_DETAILS](state, {owner, contractAddress, pricePerBlockInWei, pricePerBlockInEth, maxBlockPurchaseInOneGo}) {
       state.simpleArtistContractOwner = owner;
@@ -123,7 +98,7 @@ const store = new Vuex.Store({
   },
   actions: {
     [actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT]({commit, dispatch, state}) {
-      dart.deployed()
+      kota.deployed()
         .then((contract) => {
           return contract.tokensOf(state.account)
             .then((tokens) => {
@@ -147,25 +122,13 @@ const store = new Vuex.Store({
     [actions.INIT_APP]({commit, dispatch, state}, web3) {
 
       // NON-ASYNC action - set web3 provider on init
-      dart.setProvider(web3.currentProvider);
+      kota.setProvider(web3.currentProvider);
 
-      //dirty hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
-      if (typeof dart.currentProvider.sendAsync !== 'function') {
-        dart.currentProvider.sendAsync = function () {
-          return dart.currentProvider.send.apply(
-            dart.currentProvider, arguments
-          );
-        };
-      }
-
-      // NON-ASYNC action - set web3 provider on init
-      simpleArtistContract.setProvider(web3.currentProvider);
-
-      //dirty hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
-      if (typeof simpleArtistContract.currentProvider.sendAsync !== 'function') {
-        simpleArtistContract.currentProvider.sendAsync = function () {
-          return simpleArtistContract.currentProvider.send.apply(
-            simpleArtistContract.currentProvider, arguments
+      // //dirty hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
+      if (typeof kota.currentProvider.sendAsync !== 'function') {
+        kota.currentProvider.sendAsync = function () {
+          return kota.currentProvider.send.apply(
+            kota.currentProvider, arguments
           );
         };
       }
@@ -182,9 +145,12 @@ const store = new Vuex.Store({
           let account = accounts[0];
 
           const setAccountAndBalance = (account) => {
+
             return web3.eth.getBalance(account)
               .then((balance) => {
+
                 let accountBalance = Web3.utils.fromWei(balance);
+
                 // store the account details
                 commit(mutations.SET_ACCOUNT, {account, accountBalance});
               });
@@ -215,80 +181,32 @@ const store = new Vuex.Store({
           // TODO handle locked metamask account
         });
     },
-    [actions.GET_ALL_ASSETS]({commit, dispatch, state}) {
-      dart.deployed()
-        .then((contract) => {
-
-          let mintEvent = contract.Minted({}, {
-            fromBlock: 0, // FIXME use contract deployed blocknumber?! or maybe expose some method to get all tokens ... is this possible ?
-            toBlock: 'latest' // wait until event comes through
-          });
-
-          mintEvent.watch(function (error, result) {
-            if (!error) {
-              console.log(result);
-              commit(mutations.SET_ASSET, {
-                owner: result.args._owner,
-                tokenId: result.args._tokenId.toNumber(10),
-                blockhash: result.args._blockhash,
-                nickname: Web3.utils.hexToAscii(result.args._nickname),
-              });
-            } else {
-              console.log('Failure', error);
-            }
-          });
-        });
-    },
     [actions.REFRESH_CONTRACT_DETAILS]({commit, dispatch, state}) {
 
-      dart.deployed()
+      kota.deployed()
         .then((contract) => {
 
-          Promise.all([contract.name(), contract.symbol(), contract.totalSupply(), contract.owner(), contract.address])
+          Promise.all([
+            contract.name(),
+            contract.symbol(),
+            contract.totalSupply(),
+            contract.owner(),
+            contract.address,
+            contract.costOfPack(),
+            contract.cardsPerPack(),
+          ])
             .then((results) => {
               commit(mutations.SET_CONTRACT_DETAILS, {
                 name: results[0],
                 symbol: results[1],
                 totalSupply: results[2].toString(),
-                curatorAddress: results[3],
+                owner: results[3],
                 contractAddress: results[4],
-              });
-
-              dispatch(actions.GET_ALL_ASSETS);
-            });
-        }).catch((error) => console.log('Something went bang!', error));
-
-      simpleArtistContract.deployed()
-        .then((contract) => {
-
-          Promise.all([contract.owner(), contract.address, contract.pricePerBlockInWei(), contract.maxBlockPurchaseInOneGo()])
-            .then((results) => {
-              commit(mutations.SET_ARTIST_CONTRACT_DETAILS, {
-                owner: results[0],
-                contractAddress: results[1],
-                pricePerBlockInWei: results[2],
-                pricePerBlockInEth: Web3.utils.fromWei(results[2].toString(10), 'ether'),
-                maxBlockPurchaseInOneGo: results[3].toNumber(10),
+                costOfPack: results[5],
+                cardsPerPack: results[6],
               });
             });
         }).catch((error) => console.log('Something went bang!', error));
-    },
-    [actions.NEXT_HASH]({commit, dispatch, state}) {
-      simpleArtistContract.deployed()
-        .then((contract) => {
-          Promise.all([contract.nextHash(), contract.nextPurchasableBlocknumber()])
-            .then((results) => {
-              commit(mutations.SET_HASH, {
-                hash: results[0][0],
-                blocknumber: results[0][1].toNumber(10),
-                nextBlockToFund: results[1].toNumber(10),
-                balance: 0
-              });
-            });
-        })
-        .catch((e) => {
-          console.error(e);
-        });
     },
     [actions.MINT]({commit, dispatch, state}, {blockhash, nickname, tokenId}) {
       dart.deployed()

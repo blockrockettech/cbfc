@@ -3,18 +3,12 @@
     <header>
       <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
         <router-link :to="{ name: 'home' }" class="navbar-brand">
-         dART
+         KOTA
         </router-link>
 
         <ul class="navbar-nav justify-content-end">
           <li class="nav-item">
             <router-link :to="{ name: 'home' }" class="nav-link d-none d-sm-block">Home</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link :to="{ name: 'mint' }" class="nav-link d-none d-sm-block">Mint</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link :to="{ name: 'artist' }" class="nav-link d-none d-sm-block">Artist</router-link>
           </li>
         </ul>
       </nav>
@@ -26,6 +20,7 @@
     </main>
 
     <current-network></current-network>
+    <span class="float-right"><pre>{{ account }}</pre></span>
   </div>
 </template>
 
@@ -37,17 +32,15 @@
   import * as actions from './store/actions';
   import * as mutations from './store/mutation-types';
   import CurrentNetwork from './components/ui-controls/CurrentNetwork';
-  import FontAwesomeIcon from '@fortawesome/vue-fontawesome';
 
   export default {
     name: 'app',
     components: {
-      FontAwesomeIcon,
       CurrentNetwork
     },
     computed: {
+      ...mapState(['account']),
       ...mapGetters([]),
-      ...mapState([]),
     },
     mounted() {
 
@@ -68,19 +61,19 @@
       // Bootstrap the full app
       this.$store.dispatch(actions.INIT_APP, bootStrappedWeb3);
 
-      setInterval(function () {
-        console.log('getting next hash');
-        this.$store.dispatch(actions.NEXT_HASH);
-      }.bind(this), 2000);
+      // setInterval(function () {
+      //   console.log('getting next hash');
+      //   this.$store.dispatch(actions.NEXT_HASH);
+      // }.bind(this), 2000);
     },
   };
 </script>
 
 <style lang="scss">
 
-  $body-bg: #ffffcc;
-  $body-color: #545454;
-  $primary: #cc3399;
+  $body-bg: #dbceb0;
+  $body-color: #563f46;
+  $primary: #484f4f;
 
   $font-family-base: 'Avenir', Helvetica, Arial, sans-serif;
 

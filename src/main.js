@@ -5,22 +5,27 @@ import App from './App';
 import router from './router';
 import store from './store';
 import logging from './logging';
-import VModal from 'vue-js-modal';
 import AsyncComputed from 'vue-async-computed';
-import ToggleButton from 'vue-js-toggle-button';
+import Web3 from 'web3';
 
-// Add brands to fontawesome
-import fontawesome from '@fortawesome/fontawesome';
-import brands from '@fortawesome/fontawesome-free-brands';
-import solid from '@fortawesome/fontawesome-free-solid';
-
-fontawesome.library.add(brands, solid);
-
-Vue.use(VModal);
 Vue.use(AsyncComputed);
-Vue.use(ToggleButton);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
+
+Vue.filter('toEth', function (value) {
+  if (!value) return '';
+  return Web3.utils.fromWei(value.toString(10), 'ether').valueOf();
+});
+
+Vue.filter('to2Dp', function (value) {
+  if (!value) return '';
+  return new BigNumber(value.toString(10)).toFormat(2);
+});
+
+Vue.filter('to0Dp', function (value) {
+  if (!value) return '';
+  return new BigNumber(value.toString(10)).toFormat(0);
+});
 
 ;(async () => {
   try {

@@ -86,7 +86,6 @@ contract KOTA is ERC721Token, Ownable {
 
     // give back the change - if any
     msg.sender.transfer(msg.value - costOfPack);
-    // fixme not inline?
     emit CardPackBought(msg.sender, uint32(now));
   }
 
