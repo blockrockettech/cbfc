@@ -81,20 +81,6 @@ const store = new Vuex.Store({
     [mutations.SET_WEB3](state, web3) {
       state.web3 = web3;
     },
-    [mutations.SET_HASH](state, {hash, blocknumber, nextBlockToFund, balance}) {
-      console.log(`blocknumber: ${blocknumber} nextHash(): ${hash}`);
-      state.hash = hash;
-      state.blocknumber = blocknumber + 1;
-      state.nextBlockToFund = nextBlockToFund;
-      state.simpleArtistContractBalance = balance;
-
-      state.hashes[blocknumber] = {
-        hash: hash,
-        blocknumber: blocknumber
-      };
-
-      Vue.set(state, 'hashes', state.hashes);
-    },
   },
   actions: {
     [actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT]({commit, dispatch, state}) {
@@ -208,18 +194,19 @@ const store = new Vuex.Store({
             });
         }).catch((error) => console.log('Something went bang!', error));
     },
-    [actions.MINT]({commit, dispatch, state}, {blockhash, nickname, tokenId}) {
-      dart.deployed()
+    [actions.BUY_PACK]({commit, dispatch, state}) {
+      kota.deployed()
         .then((contract) => {
-          console.log(`minting... ${blockhash} -  ${nickname} - ${tokenId}`);
-          let tx = contract.mint(blockhash, tokenId, nickname, {from: state.account});
+          console.log(`buying pack...`);
+          let tx = contract.buyPack({from: state.account});
 
           console.log(tx);
+
           tx
             .then((data) => {
               console.log(data);
               setInterval(function () {
-                dispatch(actions.GET_ALL_ASSETS);
+                dispatch(actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT);
               }, 10000);
             })
             .catch((e) => {

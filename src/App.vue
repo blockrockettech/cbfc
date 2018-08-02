@@ -3,7 +3,7 @@
     <header>
       <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
         <router-link :to="{ name: 'home' }" class="navbar-brand">
-         KOTA
+         BANDS FC
         </router-link>
 
         <ul class="navbar-nav justify-content-end">
@@ -71,9 +71,9 @@
 
 <style lang="scss">
 
-  $body-bg: #dbceb0;
-  $body-color: #563f46;
-  $primary: #484f4f;
+  $body-bg: #f1f1f1;
+  $body-color: #2c3142;
+  $primary: #e04e39;
 
   $font-family-base: 'Avenir', Helvetica, Arial, sans-serif;
 

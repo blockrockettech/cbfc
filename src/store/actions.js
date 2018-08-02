@@ -10,4 +10,5 @@ export const REFRESH_CONTRACT_DETAILS = 'REFRESH_CONTRACT_DETAILS';
 
 // minting
 export const MINT = 'MINT';
+export const BUY_PACK = 'BUY_PACK';
 
