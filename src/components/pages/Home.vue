@@ -6,8 +6,10 @@
       <hr class="my-4">
       <div class="text-center">
         <ul>
-          <li>Cost per pack: {{ costOfPack | toEth }} ETH</li>
-          <li>Cards per pack: {{ cardsPerPack.toString(10) }}</li>
+          <li>Cost per Pack: {{ costOfPack | toEth }} ETH</li>
+          <li>Cards per Pack: {{ cardsPerPack.toString(10) }}</li>
+          <li>Total in Circulation: {{ totalCardsInCirculation.toString(10) }}</li>
+          <li>Total Sold: {{ totalCardsInCirculationSold.toString(10) }}</li>
         </ul>
         <p class="lead">
           <a class="btn btn-primary btn-lg" href="#" role="button" @click="BUY_PACK()">Buy now</a>
@@ -30,7 +32,12 @@
       LoadingSpinner
     },
     computed: {
-      ...mapState(['costOfPack', 'cardsPerPack']),
+      ...mapState([
+        'costOfPack',
+        'cardsPerPack',
+        'totalCardsInCirculation',
+        'totalCardsInCirculationSold'
+      ]),
       ...mapGetters([])
     },
     methods: {

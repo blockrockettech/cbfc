@@ -5,7 +5,7 @@ import * as mutations from './mutation-types';
 import _ from 'lodash';
 import Web3 from 'web3';
 import createLogger from 'vuex/dist/logger';
-import {getEtherscanAddress, getNetIdString} from '../utils';
+import { getEtherscanAddress, getNetIdString } from '../utils';
 import contract from 'truffle-contract';
 
 import kotaJson from '../../build/contracts/KOTA.json';
@@ -23,34 +23,46 @@ const store = new Vuex.Store({
     accountBalance: null,
     currentNetwork: null,
     etherscanBase: null,
-    assetsPurchasedByAccount: [],
+    assetsPurchasedByAccount: null,
 
     // contract metadata
-    contractName: '',
-    contractSymbol: '',
-    contractAddress: '',
-    owner: '',
+    contractName: null,
+    contractSymbol: null,
+    contractAddress: null,
+    owner: null,
 
     // contract totals
     totalSupply: null,
     costOfPack: null,
     cardsPerPack: null,
+    totalCardsInCirculation: null,
+    totalCardsInCirculationSold: null,
   },
   getters: {},
   mutations: {
-    [mutations.SET_ALL_ASSETS](state, assets) {
+    [mutations.SET_ALL_ASSETS] (state, assets) {
       Vue.set(state, 'assets', state.assets);
     },
-    [mutations.SET_ASSET](state, asset) {
+    [mutations.SET_ASSET] (state, asset) {
       if (!_.find(state.assets, {tokenId: asset.tokenId})) {
         state.assets.push(asset);
       }
       Vue.set(state, 'assets', state.assets);
     },
-    [mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT](state, tokens) {
+    [mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT] (state, tokens) {
       Vue.set(state, 'assetsPurchasedByAccount', tokens);
     },
-    [mutations.SET_CONTRACT_DETAILS](state, {name, symbol, totalSupply, owner, contractAddress, costOfPack, cardsPerPack}) {
+    [mutations.SET_CONTRACT_DETAILS] (state, {
+      name,
+      symbol,
+      totalSupply,
+      owner,
+      contractAddress,
+      costOfPack,
+      cardsPerPack,
+      totalCardsInCirculation,
+      totalCardsInCirculationSold
+    }) {
       state.totalSupply = totalSupply;
       state.contractSymbol = symbol;
       state.contractName = name;
@@ -58,32 +70,27 @@ const store = new Vuex.Store({
       state.contractAddress = contractAddress;
       state.costOfPack = costOfPack;
       state.cardsPerPack = cardsPerPack;
+      state.totalCardsInCirculation = totalCardsInCirculation;
+      state.totalCardsInCirculationSold = totalCardsInCirculationSold;
     },
-    [mutations.SET_ARTIST_CONTRACT_DETAILS](state, {owner, contractAddress, pricePerBlockInWei, pricePerBlockInEth, maxBlockPurchaseInOneGo}) {
-      state.simpleArtistContractOwner = owner;
-      state.simpleArtistContractAddress = contractAddress;
-      state.pricePerBlockInWei = pricePerBlockInWei;
-      state.pricePerBlockInEth = pricePerBlockInEth;
-      state.maxBlockPurchaseInOneGo = maxBlockPurchaseInOneGo;
-    },
-    [mutations.SET_ACCOUNT](state, {account, accountBalance}) {
+    [mutations.SET_ACCOUNT] (state, {account, accountBalance}) {
       state.account = account;
       state.accountBalance = accountBalance;
 
       store.dispatch(actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT);
     },
-    [mutations.SET_CURRENT_NETWORK](state, currentNetwork) {
+    [mutations.SET_CURRENT_NETWORK] (state, currentNetwork) {
       state.currentNetwork = currentNetwork;
     },
-    [mutations.SET_ETHERSCAN_NETWORK](state, etherscanBase) {
+    [mutations.SET_ETHERSCAN_NETWORK] (state, etherscanBase) {
       state.etherscanBase = etherscanBase;
     },
-    [mutations.SET_WEB3](state, web3) {
+    [mutations.SET_WEB3] (state, web3) {
       state.web3 = web3;
     },
   },
   actions: {
-    [actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT]({commit, dispatch, state}) {
+    [actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT] ({commit, dispatch, state}) {
       kota.deployed()
         .then((contract) => {
           return contract.tokensOf(state.account)
@@ -95,7 +102,7 @@ const store = new Vuex.Store({
           console.error(e);
         });
     },
-    [actions.GET_CURRENT_NETWORK]({commit, dispatch, state}) {
+    [actions.GET_CURRENT_NETWORK] ({commit, dispatch, state}) {
       getNetIdString()
         .then((currentNetwork) => {
           commit(mutations.SET_CURRENT_NETWORK, currentNetwork);
@@ -105,7 +112,7 @@ const store = new Vuex.Store({
           commit(mutations.SET_ETHERSCAN_NETWORK, etherscanBase);
         });
     },
-    [actions.INIT_APP]({commit, dispatch, state}, web3) {
+    [actions.INIT_APP] ({commit, dispatch, state}, web3) {
 
       // NON-ASYNC action - set web3 provider on init
       kota.setProvider(web3.currentProvider);
@@ -167,10 +174,12 @@ const store = new Vuex.Store({
           // TODO handle locked metamask account
         });
     },
-    [actions.REFRESH_CONTRACT_DETAILS]({commit, dispatch, state}) {
+    [actions.REFRESH_CONTRACT_DETAILS] ({commit, dispatch, state}) {
 
       kota.deployed()
         .then((contract) => {
+
+          console.log('aaaaa');
 
           Promise.all([
             contract.name(),
@@ -180,6 +189,8 @@ const store = new Vuex.Store({
             contract.address,
             contract.costOfPack(),
             contract.cardsPerPack(),
+            contract.totalCardsInCirculation(),
+            contract.totalCardsInCirculationSold()
           ])
             .then((results) => {
               commit(mutations.SET_CONTRACT_DETAILS, {
@@ -190,15 +201,18 @@ const store = new Vuex.Store({
                 contractAddress: results[4],
                 costOfPack: results[5],
                 cardsPerPack: results[6],
+                totalCardsInCirculation: results[7],
+                totalCardsInCirculationSold: results[8],
               });
-            });
+            })
+            .catch((error) => console.log('Something went bang!', error));
         }).catch((error) => console.log('Something went bang!', error));
     },
-    [actions.BUY_PACK]({commit, dispatch, state}) {
+    [actions.BUY_PACK] ({commit, dispatch, state}) {
       kota.deployed()
         .then((contract) => {
           console.log(`buying pack...`);
-          let tx = contract.buyPack({from: state.account});
+          let tx = contract.buyPack({value: state.costOfPack, from: state.account});
 
           console.log(tx);
 
