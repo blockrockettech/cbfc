@@ -2,7 +2,7 @@
   <div>
     <div class="jumbotron">
       <h1 class="display-4">Are you ready to rock?</h1>
-      <p class="lead">Buy lucky packs of <span class="text-primary">Bands FC</span> cards</p>
+      <p class="lead">Buy lucky packs of <span class="text-primary">KOTA</span> cards</p>
       <hr class="my-4">
       <div class="text-center">
         <ul>

@@ -3,7 +3,7 @@
     <header>
       <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
         <router-link :to="{ name: 'home' }" class="navbar-brand">
-         BANDS FC
+         KOTA
         </router-link>
 
         <ul class="navbar-nav justify-content-end">
