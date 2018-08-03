@@ -19,10 +19,13 @@ const store = new Vuex.Store({
   state: {
     // connectivity
     web3: null,
-    account: null,
-    accountBalance: null,
     currentNetwork: null,
     etherscanBase: null,
+
+
+    // account
+    account: null,
+    accountBalance: null,
     assetsPurchasedByAccount: null,
 
     // contract metadata

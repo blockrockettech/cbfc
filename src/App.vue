@@ -10,6 +10,9 @@
           <li class="nav-item">
             <router-link :to="{ name: 'home' }" class="nav-link d-none d-sm-block">Home</router-link>
           </li>
+          <li class="nav-item">
+            <router-link :to="{ name: 'mycards' }" class="nav-link d-none d-sm-block">My Cards</router-link>
+          </li>
         </ul>
       </nav>
 
@@ -20,7 +23,6 @@
     </main>
 
     <current-network></current-network>
-    <span class="float-right"><pre>{{ account }}</pre></span>
   </div>
 </template>
 
