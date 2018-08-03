@@ -10,6 +10,7 @@
           <li>Cards per Pack: {{ cardsPerPack.toString(10) }}</li>
           <li>Total in Circulation: {{ totalCardsInCirculation.toString(10) }}</li>
           <li>Total Sold: {{ totalCardsInCirculationSold.toString(10) }}</li>
+          <li>Total Cards: {{ cardSetsInCirculation.toString(10) }}</li>
         </ul>
         <p class="lead">
           <a class="btn btn-primary btn-lg" href="#" role="button" @click="BUY_PACK()">Buy now</a>
@@ -36,7 +37,8 @@
         'costOfPack',
         'cardsPerPack',
         'totalCardsInCirculation',
-        'totalCardsInCirculationSold'
+        'totalCardsInCirculationSold',
+        'cardSetsInCirculation'
       ]),
       ...mapGetters([])
     },

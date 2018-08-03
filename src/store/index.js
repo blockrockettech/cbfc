@@ -37,6 +37,8 @@ const store = new Vuex.Store({
     cardsPerPack: null,
     totalCardsInCirculation: null,
     totalCardsInCirculationSold: null,
+    cardSetsInCirculation: null,
+    cardSetCirculation: null
   },
   getters: {},
   mutations: {
@@ -61,7 +63,8 @@ const store = new Vuex.Store({
       costOfPack,
       cardsPerPack,
       totalCardsInCirculation,
-      totalCardsInCirculationSold
+      totalCardsInCirculationSold,
+      cardSetsInCirculation
     }) {
       state.totalSupply = totalSupply;
       state.contractSymbol = symbol;
@@ -72,6 +75,7 @@ const store = new Vuex.Store({
       state.cardsPerPack = cardsPerPack;
       state.totalCardsInCirculation = totalCardsInCirculation;
       state.totalCardsInCirculationSold = totalCardsInCirculationSold;
+      state.cardSetsInCirculation = cardSetsInCirculation;
     },
     [mutations.SET_ACCOUNT] (state, {account, accountBalance}) {
       state.account = account;
@@ -179,8 +183,6 @@ const store = new Vuex.Store({
       kota.deployed()
         .then((contract) => {
 
-          console.log('aaaaa');
-
           Promise.all([
             contract.name(),
             contract.symbol(),
@@ -190,7 +192,8 @@ const store = new Vuex.Store({
             contract.costOfPack(),
             contract.cardsPerPack(),
             contract.totalCardsInCirculation(),
-            contract.totalCardsInCirculationSold()
+            contract.totalCardsInCirculationSold(),
+            contract.cardSetsInCirculation()
           ])
             .then((results) => {
               commit(mutations.SET_CONTRACT_DETAILS, {
@@ -203,6 +206,7 @@ const store = new Vuex.Store({
                 cardsPerPack: results[6],
                 totalCardsInCirculation: results[7],
                 totalCardsInCirculationSold: results[8],
+                cardSetsInCirculation: results[9]
               });
             })
             .catch((error) => console.log('Something went bang!', error));

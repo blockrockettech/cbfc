@@ -24,6 +24,7 @@ contract KOTA is ERC721Token, Ownable {
 
   uint256 public totalCardsInCirculation = 0;
   uint256 public totalCardsInCirculationSold = 0;
+
   uint256 internal randNonce = 0;
 
   mapping(address => uint) public credits;
@@ -40,8 +41,7 @@ contract KOTA is ERC721Token, Ownable {
 
   CardSet[] public cardSetCirculation;
 
-  constructor() public ERC721Token("KOTA", "KOTA") {
-  }
+  constructor() public ERC721Token("KOTA", "KOTA") {}
 
   // can buy direct from contract if you send enough ether
   function() public payable {
