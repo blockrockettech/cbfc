@@ -102,19 +102,20 @@ const store = new Vuex.Store({
               commit(mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT, tokens);
             });
         })
-        .catch((e) => {
-          console.error(e);
-        });
+        .catch((error) => console.log('Something went bang!', error));
     },
     [actions.GET_CURRENT_NETWORK] ({commit, dispatch, state}) {
       getNetIdString()
         .then((currentNetwork) => {
           commit(mutations.SET_CURRENT_NETWORK, currentNetwork);
-        });
+        })
+        .catch((error) => console.log('Something went bang!', error));
+
       getEtherscanAddress()
         .then((etherscanBase) => {
           commit(mutations.SET_ETHERSCAN_NETWORK, etherscanBase);
-        });
+        })
+        .catch((error) => console.log('Something went bang!', error));
     },
     [actions.INIT_APP] ({commit, dispatch, state}, web3) {
 
@@ -173,10 +174,7 @@ const store = new Vuex.Store({
             return setAccountAndBalance(account);
           }
         })
-        .catch(function (error) {
-          console.log('ERROR - account locked', error);
-          // TODO handle locked metamask account
-        });
+        .catch((error) => console.log('Account locked!', error));
     },
     [actions.REFRESH_CONTRACT_DETAILS] ({commit, dispatch, state}) {
 
@@ -227,13 +225,9 @@ const store = new Vuex.Store({
                 dispatch(actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT);
               }, 10000);
             })
-            .catch((e) => {
-              console.error(e);
-            });
+            .catch((error) => console.log('Something went bang!', error));
         })
-        .catch((e) => {
-          console.error(e);
-        });
+        .catch((error) => console.log('Something went bang!', error));
     }
   }
 });
