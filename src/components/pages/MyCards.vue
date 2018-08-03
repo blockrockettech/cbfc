@@ -4,11 +4,16 @@
     <pre>{{ account }}</pre>
     <div class="card-columns">
       <div class="card border-primary mb-3" v-for="card in assetsPurchasedByAccount">
-        <img class="card-img-top" src="https://placeimg.com/100/150/any" alt="Card image cap">
+        <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${cardSets[(parseInt(card.toString(10) / 1000) * 1000)][4]}/image`" alt="Card image cap">
         <div class="card-body">
-          <h5 class="card-title">{{ card.toString(10) }}</h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-          <a href="#" class="btn btn-primary">Go somewhere</a>
+          <h5 class="card-title">
+            <span class="text-muted">{{ (parseInt(card.toString(10) / 1000) * 1000) }}</span>
+            <span class="float-right">
+            {{ parseInt(card.toString(10) - (parseInt(card.toString(10) / 1000) * 1000)) }}
+            of {{ cardSets[(parseInt(card.toString(10) / 1000) * 1000)][1].toString(10) }}
+            </span>
+          </h5>
+          <p class="card-text">{{ web3.utils.toAscii(cardSets[(parseInt(card.toString(10) / 1000) * 1000)][3]) }}</p>
         </div>
       </div>
     </div>
@@ -29,7 +34,9 @@
     computed: {
       ...mapState([
         'assetsPurchasedByAccount',
-        'account'
+        'account',
+        'cardSets',
+        'web3'
       ]),
       ...mapGetters([])
     },

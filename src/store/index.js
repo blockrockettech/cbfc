@@ -12,6 +12,8 @@ import kotaJson from '../../build/contracts/KOTA.json';
 
 const kota = contract(kotaJson);
 
+const cardSetIncrements = 1000;
+
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
@@ -21,7 +23,6 @@ const store = new Vuex.Store({
     web3: null,
     currentNetwork: null,
     etherscanBase: null,
-
 
     // account
     account: null,
@@ -41,7 +42,9 @@ const store = new Vuex.Store({
     totalCardsInCirculation: null,
     totalCardsInCirculationSold: null,
     cardSetsInCirculation: null,
-    cardSetCirculation: null
+    cardSetCirculation: null,
+
+    cardSets: null
   },
   getters: {},
   mutations: {
@@ -56,6 +59,9 @@ const store = new Vuex.Store({
     },
     [mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT] (state, tokens) {
       Vue.set(state, 'assetsPurchasedByAccount', tokens);
+    },
+    [mutations.SET_CARD_SETS] (state, cardSets) {
+      Vue.set(state, 'cardSets', cardSets);
     },
     [mutations.SET_CONTRACT_DETAILS] (state, {
       name,
@@ -97,15 +103,26 @@ const store = new Vuex.Store({
     },
   },
   actions: {
-    [actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT] ({commit, dispatch, state}) {
-      kota.deployed()
-        .then((contract) => {
-          return contract.tokensOf(state.account)
-            .then((tokens) => {
-              commit(mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT, tokens);
-            });
-        })
-        .catch((error) => console.log('Something went bang!', error));
+    async [actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT] ({commit, dispatch, state}) {
+      const contract = await kota.deployed();
+      const tokens = await contract.tokensOf(state.account);
+
+      const uniqueCardNumbers = _.uniq(_.map(tokens, (id) => parseInt(id / cardSetIncrements) * cardSetIncrements));
+      let dataPromises = _.map(uniqueCardNumbers, (cardNumber) => contract.cardSets(cardNumber));
+
+      const cardSets = await Promise.all(dataPromises);
+      const cardSetsObj = _.reduce(
+        cardSets,
+        (obj, val) => {
+          obj[val[0].toString(10)] = val;
+          return obj;
+        },
+        {}
+      );
+
+      console.log(cardSetsObj);
+      commit(mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT, tokens);
+      commit(mutations.SET_CARD_SETS, cardSetsObj);
     },
     [actions.GET_CURRENT_NETWORK] ({commit, dispatch, state}) {
       getNetIdString()
