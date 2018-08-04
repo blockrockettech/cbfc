@@ -1,15 +1,13 @@
 <template>
   <div class="jumbotron">
-    <h1 class="display-4">Are you ready to rock?</h1>
-    <p class="lead">Buy lucky packs of <span class="text-primary">KOTA</span> cards</p>
-    <hr class="my-4">
+    <h1 class="display-4">Buy lucky packs of <span class="text-primary">KOTA</span> cards</h1>
+    <h2><span class="badge badge-primary">SOLD {{ totalCardsInCirculationSold.toString(10) }} of {{ totalCardsInCirculation.toString(10) }}</span> </h2>
+    <p class="lead"></p>
     <div class="text-center">
       <ul>
         <li>Cost per Pack: {{ costOfPack | toEth }} ETH</li>
         <li>Cards per Pack: {{ cardsPerPack.toString(10) }}</li>
-        <li>Total in Circulation: {{ totalCardsInCirculation.toString(10) }}</li>
-        <li>Total Sold: {{ totalCardsInCirculationSold.toString(10) }}</li>
-        <li>Total Cards: {{ cardSetsInCirculation.toString(10) }}</li>
+        <li>Individual Cards: {{ cardSetsInCirculation.toString(10) }}</li>
       </ul>
       <p class="lead">
         <a class="btn btn-primary btn-lg" href="#" role="button" @click="BUY_PACK()">Buy now</a>

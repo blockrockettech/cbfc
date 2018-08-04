@@ -3,10 +3,12 @@
     <header>
       <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
         <router-link :to="{ name: 'home' }" class="navbar-brand">
-         KOTA
+          KOTA
         </router-link>
 
-        <ul class="navbar-nav justify-content-end">
+        <current-network></current-network>
+
+        <ul class="navbar-nav justify-content-end ml-5">
           <li class="nav-item">
             <router-link :to="{ name: 'home' }" class="nav-link d-none d-sm-block">Home</router-link>
           </li>
@@ -15,14 +17,11 @@
           </li>
         </ul>
       </nav>
-
     </header>
 
     <main role="main" class="container">
       <router-view></router-view>
     </main>
-
-    <current-network></current-network>
   </div>
 </template>
 
@@ -30,7 +29,7 @@
   /* global web3:true */
 
   import Web3 from 'web3';
-  import {mapGetters, mapState} from 'vuex';
+  import { mapGetters, mapState } from 'vuex';
   import * as actions from './store/actions';
   import * as mutations from './store/mutation-types';
   import CurrentNetwork from './components/ui-controls/CurrentNetwork';
@@ -44,7 +43,7 @@
       ...mapState(['account']),
       ...mapGetters([]),
     },
-    mounted() {
+    mounted () {
 
       let bootStrappedWeb3;
 
@@ -55,7 +54,7 @@
         console.log('No web3! You should consider trying MetaMask or an Ethereum browser');
         console.log('Falling back to using HTTP Provider');
 
-        bootStrappedWeb3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/nbCbdzC6IG9CF6hmvAVQ"));
+        bootStrappedWeb3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/nbCbdzC6IG9CF6hmvAVQ'));
       }
 
       window.web3 = bootStrappedWeb3;

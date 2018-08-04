@@ -1,6 +1,6 @@
 <template>
-  <div class="m-4">
-    Network: {{ currentNetwork }}
+  <div class="badge badge-light">
+     {{ currentNetwork }}
   </div>
 </template>
 

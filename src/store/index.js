@@ -46,7 +46,20 @@ const store = new Vuex.Store({
 
     cardSets: null
   },
-  getters: {},
+  getters: {
+    cardSetNumberFromTokenId: (state) => (tokenId) => {
+      return (parseInt(tokenId.toString(10) / cardSetIncrements));
+    },
+    cardSetFromTokenId: (state, getters) => (tokenId) => {
+      return getters.cardSetNumberFromTokenId(tokenId) * cardSetIncrements;
+    },
+    cardSerialNumberFromTokenId: (state, getters) => (tokenId) => {
+      return parseInt(tokenId - getters.cardSetFromTokenId(tokenId));
+    },
+    lookupCardSet: (state, getters) => (tokenId) => {
+      return state.cardSets[getters.cardSetFromTokenId(tokenId)];
+    }
+  },
   mutations: {
     [mutations.SET_ALL_ASSETS] (state, assets) {
       Vue.set(state, 'assets', state.assets);

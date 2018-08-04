@@ -1,19 +1,17 @@
 <template>
-  <div>
-    <h1 class="display-4">My Cards</h1>
+  <div v-if="assetsPurchasedByAccount">
+    <h1 class="display-4">My Cards <span class="badge badge-primary">{{ assetsPurchasedByAccount.length }}</span></h1>
     <pre>{{ account }}</pre>
     <div class="card-columns">
-      <div class="card border-primary mb-3" v-for="card in assetsPurchasedByAccount">
-        <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${cardSets[(parseInt(card.toString(10) / 1000) * 1000)][4]}/image`" alt="Card image cap">
-        <div class="card-body">
-          <h5 class="card-title">
-            <span class="text-muted">{{ (parseInt(card.toString(10) / 1000) * 1000) }}</span>
-            <span class="float-right">
-            {{ parseInt(card.toString(10) - (parseInt(card.toString(10) / 1000) * 1000)) }}
-            of {{ cardSets[(parseInt(card.toString(10) / 1000) * 1000)][1].toString(10) }}
-            </span>
-          </h5>
-          <p class="card-text">{{ web3.utils.toAscii(cardSets[(parseInt(card.toString(10) / 1000) * 1000)][3]) }}</p>
+      <div class="card border-primary mb-3" v-for="tokenId in assetsPurchasedByAccount">
+        <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${lookupCardSet(tokenId)[4]}/image`" :alt="web3.utils.toAscii(lookupCardSet(tokenId)[3])">
+        <div class="card-footer">
+          <div class="btn-group-vertical btn-block">
+            <router-link :to="{ name: 'mycard', params: { tokenId: tokenId} }" tag="button"
+                         class="btn btn-outline-primary btn-block">
+              View card
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -23,14 +21,10 @@
 <script>
 
   import { mapGetters, mapState, mapActions } from 'vuex';
-  import LoadingSpinner from '../ui-controls/LoadingSpinner.vue';
-  import * as actions from '../../store/actions';
 
   export default {
     name: 'mycards',
-    components: {
-      LoadingSpinner
-    },
+    components: {},
     computed: {
       ...mapState([
         'assetsPurchasedByAccount',
@@ -38,7 +32,12 @@
         'cardSets',
         'web3'
       ]),
-      ...mapGetters([])
+      ...mapGetters([
+        'cardSetFromTokenId',
+        'cardSetNumberFromTokenId',
+        'cardSerialNumberFromTokenId',
+        'lookupCardSet'
+      ])
     },
     methods: {
       ...mapActions([])
