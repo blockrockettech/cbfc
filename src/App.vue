@@ -76,7 +76,10 @@
   $body-color: #2c3142;
   $primary: #e04e39;
 
-  $font-family-base: 'Avenir', Helvetica, Arial, sans-serif;
+  @import url('https://fonts.googleapis.com/css?family=Poppins:400,700');
+
+  $enable-rounded: false;
+  $font-family-base: 'Poppins', 'Avenir', Helvetica, Arial, sans-serif;
 
   @import '../node_modules/bootstrap/scss/bootstrap.scss';
 

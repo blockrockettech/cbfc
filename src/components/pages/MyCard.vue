@@ -10,7 +10,7 @@
               <span class="badge badge-primary">#{{ cardSerialNumberFromTokenId(tokenId) }} of {{ lookupCardSet(tokenId)[1].toString(10) }}</span>
             </span>
           </h5>
-          <p class="card-text text-muted">Card {{ cardSetNumberFromTokenId(tokenId) }}</p>
+          <p class="card-text text-muted">Card #{{ cardSetNumberFromTokenId(tokenId) }}</p>
         </div>
       </div>
     </div>

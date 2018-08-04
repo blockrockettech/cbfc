@@ -27,6 +27,7 @@ const store = new Vuex.Store({
     // account
     account: null,
     accountBalance: null,
+    accountCredits: null,
     assetsPurchasedByAccount: null,
 
     // contract metadata
@@ -86,7 +87,8 @@ const store = new Vuex.Store({
       cardsPerPack,
       totalCardsInCirculation,
       totalCardsInCirculationSold,
-      cardSetsInCirculation
+      cardSetsInCirculation,
+      accountCredits
     }) {
       state.totalSupply = totalSupply;
       state.contractSymbol = symbol;
@@ -98,6 +100,7 @@ const store = new Vuex.Store({
       state.totalCardsInCirculation = totalCardsInCirculation;
       state.totalCardsInCirculationSold = totalCardsInCirculationSold;
       state.cardSetsInCirculation = cardSetsInCirculation;
+      state.accountCredits = accountCredits;
     },
     [mutations.SET_ACCOUNT] (state, {account, accountBalance}) {
       state.account = account;
@@ -224,7 +227,8 @@ const store = new Vuex.Store({
             contract.cardsPerPack(),
             contract.totalCardsInCirculation(),
             contract.totalCardsInCirculationSold(),
-            contract.cardSetsInCirculation()
+            contract.cardSetsInCirculation(),
+            contract.credits(state.account)
           ])
             .then((results) => {
               commit(mutations.SET_CONTRACT_DETAILS, {
@@ -237,7 +241,8 @@ const store = new Vuex.Store({
                 cardsPerPack: results[6],
                 totalCardsInCirculation: results[7],
                 totalCardsInCirculationSold: results[8],
-                cardSetsInCirculation: results[9]
+                cardSetsInCirculation: results[9],
+                accountCredits: results[10]
               });
             })
             .catch((error) => console.log('Something went bang!', error));
