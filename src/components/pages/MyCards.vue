@@ -1,13 +1,16 @@
 <template>
   <div v-if="assetsPurchasedByAccount">
     <h1 class="display-4">My Cards <span class="badge badge-primary">{{ assetsPurchasedByAccount.length }}</span></h1>
-    <pre>{{ account }}</pre>
-    <div class="card-columns">
+    <pre class="text-muted">{{ account }}</pre>
+    <div class="card-deck">
       <div class="card border-primary mb-3" v-for="tokenId in assetsPurchasedByAccount">
-        <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${lookupCardSet(tokenId)[4]}/image`" :alt="web3.utils.toAscii(lookupCardSet(tokenId)[3])">
+        <router-link :to="{ name: 'mycard', params: { tokenId: tokenId} }">
+          <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${lookupCardSet(tokenId)[4]}/image`" :alt="web3.utils.toAscii(lookupCardSet(tokenId)[3])">
+        </router-link>
+        <div class="card-body"></div>
         <div class="card-footer text-center">
           <router-link :to="{ name: 'mycard', params: { tokenId: tokenId} }">
-            #{{ cardSetNumberFromTokenId(tokenId) }} <span class="pl-3">{{ web3.utils.toAscii(lookupCardSet(tokenId)[3]) }}</span>
+            #{{ cardSetNumberFromTokenId(tokenId) }}
           </router-link>
         </div>
       </div>
@@ -44,5 +47,6 @@
 
 <style scoped lang="scss">
   .card {
+
   }
 </style>

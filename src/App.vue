@@ -120,7 +120,7 @@
 
   .main-container {
     background-color: $body-bg !important;
-    padding: 40px 40px;
+    padding: 20px 40px 40px 40px;
   }
 
   .navbar-brand {
