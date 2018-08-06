@@ -6,22 +6,41 @@
           KOTA
         </router-link>
 
-        <current-network></current-network>
-
         <ul class="navbar-nav justify-content-end ml-5">
           <li class="nav-item">
-            <router-link :to="{ name: 'home' }" class="nav-link d-none d-sm-block">Home</router-link>
+            <router-link :to="{ name: 'home' }" class="nav-link d-none d-sm-block">Buy Cards</router-link>
           </li>
           <li class="nav-item">
-            <router-link :to="{ name: 'mycards' }" class="nav-link d-none d-sm-block">My Cards</router-link>
+            <router-link :to="{ name: 'mycards' }" class="nav-link">My Cards</router-link>
           </li>
         </ul>
       </nav>
     </header>
 
-    <main role="main" class="container">
+    <main role="main" class="container main-container">
       <router-view></router-view>
     </main>
+
+    <footer class="footer bg-primary">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm">
+            <small class="slogan">BE ORIGINAL. BUY ORIGINAL.</small>
+          </div>
+          <div class="col-sm text-center">
+            <small>
+              <router-link :to="{ name: 'home' }">Buy Cards</router-link> &bull;
+              <router-link :to="{ name: 'mycards' }">My Cards</router-link>
+            </small>
+          </div>
+          <div class="col-sm text-right">
+            <small class="">
+              <current-network></current-network>
+            </small>
+          </div>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -99,9 +118,9 @@
     background-image: url("../static/KO_dots.jpg");
   }
 
-  .container {
-    background-color: $body-bg;
-    padding: 50px 30px;
+  .main-container {
+    background-color: $body-bg !important;
+    padding: 40px 40px;
   }
 
   .navbar-brand {
@@ -139,9 +158,7 @@
   }
 
   .footer > .container {
-    padding-right: 15px;
-    padding-left: 15px;
-    padding-top: 15px;
+    padding: 15px;
     color: #f2f5fb;
 
     .slogan {
@@ -153,9 +170,5 @@
       padding-left: 2px;
       padding-right: 2px;
     }
-  }
-
-  .btn-group-vertical > button {
-    margin-bottom: 10px;
   }
 </style>
