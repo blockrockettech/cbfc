@@ -72,13 +72,14 @@
 
 <style lang="scss">
 
-  $body-bg: #f1f1f1;
-  $body-color: #2c3142;
-  $primary: #e04e39;
-
   @import url('https://fonts.googleapis.com/css?family=Poppins:400,700');
 
+  $body-bg: #f2f5fb;
+  $body-color: #545454;
+  $primary: #3e27d9;
+  $secondary: #f2f5fb;
   $enable-rounded: false;
+
   $font-family-base: 'Poppins', 'Avenir', Helvetica, Arial, sans-serif;
 
   @import '../node_modules/bootstrap/scss/bootstrap.scss';
@@ -95,6 +96,12 @@
     margin-top: 10px;
     padding-top: 70px;
     padding-bottom: 20px;
+    background-image: url("../static/KO_dots.jpg");
+  }
+
+  .container {
+    background-color: $body-bg;
+    padding: 50px 30px;
   }
 
   .navbar-brand {

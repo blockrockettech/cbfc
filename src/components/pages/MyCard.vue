@@ -5,12 +5,11 @@
         <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${lookupCardSet(tokenId)[4]}/image`" :alt="web3.utils.toAscii(lookupCardSet(tokenId)[3])">
         <div class="card-body">
           <h5 class="card-title">
-            {{ web3.utils.toAscii(lookupCardSet(tokenId)[3]) }}
+            #{{ cardSetNumberFromTokenId(tokenId) }} <span class="pl-3">{{ web3.utils.toAscii(lookupCardSet(tokenId)[3]) }}</span>
             <span class="float-right">
               <span class="badge badge-primary">#{{ cardSerialNumberFromTokenId(tokenId) }} of {{ lookupCardSet(tokenId)[1].toString(10) }}</span>
             </span>
           </h5>
-          <p class="card-text text-muted">Card #{{ cardSetNumberFromTokenId(tokenId) }}</p>
         </div>
       </div>
     </div>

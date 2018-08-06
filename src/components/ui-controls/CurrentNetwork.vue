@@ -1,5 +1,5 @@
 <template>
-  <div class="badge badge-light">
+  <div class="badge badge-secondary">
      {{ currentNetwork }}
   </div>
 </template>

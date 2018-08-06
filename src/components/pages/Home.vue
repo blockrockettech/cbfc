@@ -1,22 +1,21 @@
 <template>
-  <div class="jumbotron">
+  <div>
     <h1 class="display-4">Buy lucky packs of <span class="text-primary">KOTA</span> cards</h1>
-    <h2><span class="badge badge-primary">SOLD {{ totalCardsInCirculationSold.toString(10) }} of {{ totalCardsInCirculation.toString(10) }}</span></h2>
-    <div class="row text-center mt-5">
-      <div class="col">
-        <a class="btn btn-primary btn-xlg" href="#" role="button" @click="BUY_PACK()">Buy Now</a>
-        <ul>
-          <li>Cost per Pack: {{ costOfPack | toEth }} ETH</li>
-          <li>Cards per Pack: {{ cardsPerPack.toString(10) }}</li>
+    <h2 v-if="cardSetsInCirculation && totalCardsInCirculation && totalCardsInCirculationSold">
+      <span class="badge badge-primary">{{totalCardsInCirculationSold.toNumber() }} SOLD</span>
+      <span class="badge badge-primary">{{ totalCardsInCirculation.toNumber() - totalCardsInCirculationSold.toNumber() }} LEFT</span>
+      <span class="badge badge-primary">{{ cardSetsInCirculation.toString(10) }} UNIQUE CARDS</span>
+    </h2>
+    <div class="row mt-5">
+      <div class="col text-right m-3">
+        <a class="btn btn-primary btn-xlg" href="#" role="button" @click="BUY_PACK()">Buy Pack</a>
+        <ul class="mt-2">
+          <li><span class="text-muted">Cost per Pack:</span> {{ costOfPack | toEth }} ETH</li>
+          <li><span class="text-muted">Cards per Pack:</span> {{ cardsPerPack.toString(10) }}</li>
         </ul>
       </div>
-      <div class="col" v-if="accountCredits.toNumber()">
-        <a class="btn btn-primary btn-xlg" href="#" role="button" @click="BUY_PACK()">Redeem Pack</a>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        Individual Cards: {{ cardSetsInCirculation.toString(10) }}
+      <div class="col text-left m-3" v-if="accountCredits.toNumber()">
+        <a class="btn btn-primary btn-xlg" href="#" role="button" @click="REDEEM_PACK()">Redeem Pack</a>
       </div>
     </div>
   </div>
@@ -46,7 +45,8 @@
     },
     methods: {
       ...mapActions([
-        actions.BUY_PACK
+        actions.BUY_PACK,
+        actions.REDEEM_PACK
       ])
     }
   };

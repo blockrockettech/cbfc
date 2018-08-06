@@ -266,6 +266,25 @@ const store = new Vuex.Store({
             .catch((error) => console.log('Something went bang!', error));
         })
         .catch((error) => console.log('Something went bang!', error));
+    },
+    [actions.REDEEM_PACK] ({commit, dispatch, state}) {
+      kota.deployed()
+        .then((contract) => {
+          console.log(`buying pack...`);
+          let tx = contract.redeemPack({from: state.account});
+
+          console.log(tx);
+
+          tx
+            .then((data) => {
+              console.log(data);
+              setInterval(function () {
+                dispatch(actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT);
+              }, 10000);
+            })
+            .catch((error) => console.log('Something went bang!', error));
+        })
+        .catch((error) => console.log('Something went bang!', error));
     }
   }
 });

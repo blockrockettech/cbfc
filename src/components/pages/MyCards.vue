@@ -5,12 +5,10 @@
     <div class="card-columns">
       <div class="card border-primary mb-3" v-for="tokenId in assetsPurchasedByAccount">
         <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${lookupCardSet(tokenId)[4]}/image`" :alt="web3.utils.toAscii(lookupCardSet(tokenId)[3])">
-        <div class="card-footer">
-          <div class="btn-group-vertical btn-block">
-            <router-link :to="{ name: 'mycard', params: { tokenId: tokenId} }" tag="button" class="btn btn-sm btn-outline-primary btn-block">
-              View card
-            </router-link>
-          </div>
+        <div class="card-footer text-center">
+          <router-link :to="{ name: 'mycard', params: { tokenId: tokenId} }">
+            #{{ cardSetNumberFromTokenId(tokenId) }} <span class="pl-3">{{ web3.utils.toAscii(lookupCardSet(tokenId)[3]) }}</span>
+          </router-link>
         </div>
       </div>
     </div>
@@ -45,4 +43,6 @@
 </script>
 
 <style scoped lang="scss">
+  .card {
+  }
 </style>
