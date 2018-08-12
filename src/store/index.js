@@ -136,7 +136,6 @@ const store = new Vuex.Store({
         {}
       );
 
-      console.log(cardSetsObj);
       commit(mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT, tokens);
       commit(mutations.SET_CARD_SETS, cardSetsObj);
     },
@@ -258,7 +257,14 @@ const store = new Vuex.Store({
 
           tx
             .then((data) => {
-              console.log(data);
+
+              Vue.$notify({
+                group: 'tx',
+                type: 'success',
+                title: 'Buy Pack',
+                text: 'Purchase successful!'
+              });
+
               setInterval(function () {
                 dispatch(actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT);
               }, 10000);

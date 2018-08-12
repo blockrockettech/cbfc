@@ -1,15 +1,41 @@
 <template>
   <div v-if="assetsPurchasedByAccount" class="row justify-content-sm-center">
     <div class="col col-sm-6">
-      <div class="card border-primary mb-3">
+      <div class="card shadow-sm mb-3">
         <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${lookupCardSet(tokenId)[4]}/image`" :alt="web3.utils.toAscii(lookupCardSet(tokenId)[3])">
         <div class="card-body">
-          <h5 class="card-title">
-            #{{ cardSetNumberFromTokenId(tokenId) }} <span class="pl-3">{{ web3.utils.toAscii(lookupCardSet(tokenId)[3]) }}</span>
-            <span class="float-right">
+          <div class="row">
+            <div class="col">
+              <h5 class="card-title">
+                Card {{ cardSetNumberFromTokenId(tokenId) }}
+              </h5>
+            </div>
+            <div class="col">
+              <span class="pl-3">{{ web3.utils.toAscii(lookupCardSet(tokenId)[3]) }}</span>
+            </div>
+          </div>
+          <div class="row text-center m-2">
+            <div class="col">
+              <span class="">#{{ cardSerialNumberFromTokenId(tokenId) }} of {{ lookupCardSet(tokenId)[1].toString(10) }}</span>
+            </div>
+            <div class="col">
+              <span class="">12 Minted</span>
+            </div>
+            <div class="col">
+              <span class="">12 Left</span>
+            </div>
+          </div>
+          <div class="row text-center m-2">
+            <div class="col">
+              Rare
+            </div>
+            <div class="col">
+              Human
+            </div>
+            <div class="col">
               <span class="badge badge-primary">#{{ cardSerialNumberFromTokenId(tokenId) }} of {{ lookupCardSet(tokenId)[1].toString(10) }}</span>
-            </span>
-          </h5>
+            </div>
+          </div>
         </div>
       </div>
     </div>

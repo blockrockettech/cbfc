@@ -8,6 +8,10 @@ import logging from './logging';
 import AsyncComputed from 'vue-async-computed';
 import Web3 from 'web3';
 
+import Notifications from 'vue-notification';
+
+Vue.use(Notifications);
+
 Vue.use(AsyncComputed);
 
 Vue.config.productionTip = false;

@@ -41,6 +41,8 @@
         </div>
       </div>
     </footer>
+
+    <notifications group="tx" position="bottom left"/>
   </div>
 </template>
 
@@ -95,9 +97,8 @@
 
   $body-bg: #f2f5fb;
   $body-color: #545454;
-  $primary: #3e27d9;
-  $secondary: #f2f5fb;
-  $enable-rounded: false;
+  $primary: #545454;
+  $secondary: #132cc4;
 
   $font-family-base: 'Poppins', 'Avenir', Helvetica, Arial, sans-serif;
 
@@ -115,7 +116,7 @@
     margin-top: 10px;
     padding-top: 70px;
     padding-bottom: 20px;
-    background-image: url("../static/KO_dots.jpg");
+    background-image: url("../static/kodo_pattern.jpeg");
   }
 
   .main-container {

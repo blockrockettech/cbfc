@@ -9,12 +9,12 @@
     <div class="row mt-5">
       <div class="col text-right m-3">
         <a class="btn btn-primary btn-xlg" href="#" role="button" @click="BUY_PACK()">Buy Pack</a>
-        <ul class="mt-2">
+        <ul class="mt-2" v-if="cardsPerPack && costOfPack">
           <li><span class="text-muted">Cost per Pack:</span> {{ costOfPack | toEth }} ETH</li>
           <li><span class="text-muted">Cards per Pack:</span> {{ cardsPerPack.toString(10) }}</li>
         </ul>
       </div>
-      <div class="col text-left m-3" v-if="accountCredits.toNumber()">
+      <div class="col text-left m-3" v-if="accountCredits && accountCredits.toNumber()">
         <a class="btn btn-primary btn-xlg" href="#" role="button" @click="REDEEM_PACK()">Redeem Pack</a>
       </div>
     </div>
