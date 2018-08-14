@@ -1,21 +1,5 @@
 <template>
   <div>
-    <header>
-      <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
-        <router-link :to="{ name: 'home' }" class="navbar-brand">
-          KOTA
-        </router-link>
-
-        <ul class="navbar-nav justify-content-end ml-5">
-          <li class="nav-item">
-            <router-link :to="{ name: 'home' }" class="nav-link d-none d-sm-block">Buy Cards</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link :to="{ name: 'mycards' }" class="nav-link">My Cards</router-link>
-          </li>
-        </ul>
-      </nav>
-    </header>
 
     <main role="main" class="container main-container">
       <router-view></router-view>
@@ -114,8 +98,8 @@
   body {
     margin-bottom: 60px;
     margin-top: 10px;
-    padding-top: 70px;
-    padding-bottom: 20px;
+    padding-top: 50px;
+    padding-bottom: 50px;
     background-image: url("../static/kodo_pattern.jpeg");
   }
 

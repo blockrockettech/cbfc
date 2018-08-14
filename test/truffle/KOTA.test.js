@@ -15,19 +15,22 @@ require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
-contract('KOTA', function (accounts) {
+contract.only('KOTA', function (accounts) {
   const _owner = accounts[0];
 
   const _buyerOne = accounts[1];
   const _buyerTwo = accounts[2];
 
-  const _defaultCardSetNumberOne = 1000;
-  const _defaultCardSetNumberTwo = 2000;
-  const _defaultCardSetNumberThree = 3000;
-  const _defaultCardSetNumberFour = 4000;
+  const _boxOne = 1000000;
+  const _boxTwo = 2000000;
 
-  const _defaultCardSetOneSerialNumberOne = 1001;
-  const _defaultCardSetTwoSerialNumberTwo = 2002;
+  const _cardSetNumberOne = 1000;
+  const _cardSetNumberTwo = 2000;
+  const _cardSetNumberThree = 3000;
+  const _cardSetNumberFour = 4000;
+
+  const _cardSetOneSerialNumberOne = 1001;
+  const _cardSetTwoSerialNumberTwo = 2002;
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -48,28 +51,31 @@ contract('KOTA', function (accounts) {
       _costOfPack = await this.token.costOfPack();
       _cardsPerPack = await this.token.cardsPerPack();
 
-      await this.token.addCardSet(_defaultCardSetNumberOne, 4, 'One', 'One', {from: _owner}); // add card set
-      await this.token.addCardSet(_defaultCardSetNumberTwo, 4, 'Two', 'Two', {from: _owner}); // add card set
-      await this.token.addCardSet(_defaultCardSetNumberThree, 4, 'Three', 'Three', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, 'One', 'One', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 4, 'Two', 'Two', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 4, 'Three', 'Three', {from: _owner}); // add card set
     });
 
     it('should have 3 card sets in circulation ', async function () {
-      const numberOfSets = await this.token.cardSetsInCirculation();
+      const numberOfSets = await this.token.cardSetsInCirculation(_boxOne);
       numberOfSets.should.be.bignumber.equal(3);
+
+      const totalCardNumbers = await this.token.cardNumbersOf(_boxOne);
+      totalCardNumbers.should.be.bignumber.equal(3);
 
       const totalCirculation = await this.token.totalCardsInCirculation();
       totalCirculation.should.be.bignumber.equal(12);
     });
 
     it('should own all cards after buying packs, all cards should be exhausted and no card sets in circulation', async function () {
-      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
-      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
-      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
 
       const balance = await this.token.balanceOf(_buyerOne);
       balance.should.be.bignumber.equal(12);
 
-      const numberOfSets = await this.token.cardSetsInCirculation();
+      const numberOfSets = await this.token.cardSetsInCirculation(_boxOne);
       numberOfSets.should.be.bignumber.equal(0);
 
       const totalSold = await this.token.totalCardsInCirculationSold();
@@ -85,32 +91,32 @@ contract('KOTA', function (accounts) {
       _costOfPack = await this.token.costOfPack();
       _cardsPerPack = await this.token.cardsPerPack();
 
-      await this.token.addCardSet(_defaultCardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
-      await this.token.addCardSet(_defaultCardSetNumberTwo, 8, 'Two', 'Two', {from: _owner}); // add card set
-      await this.token.addCardSet(_defaultCardSetNumberThree, 8, 'Three', 'Three', {from: _owner}); // add card set
-      await this.token.addCardSet(_defaultCardSetNumberFour, 8, 'Four', 'Four', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 8, 'Three', 'Three', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberFour, 8, 'Four', 'Four', {from: _owner}); // add card set
     });
 
     it('should have 4 card sets in circulation', async function () {
-      const numberOfSets = await this.token.cardSetsInCirculation();
+      const numberOfSets = await this.token.cardSetsInCirculation(_boxOne);
       numberOfSets.should.be.bignumber.equal(4);
     });
 
     it('should own x cards after buying pack', async function () {
-      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
 
       const balance = await this.token.balanceOf(_buyerOne);
       balance.should.be.bignumber.equal(4);
     });
 
     it('should remove cardset once supply is exhausted', async function () {
-      const cardSetTotal = await this.token.cardSetsInCirculation();
+      const cardSetTotal = await this.token.cardSetsInCirculation(_boxOne);
       cardSetTotal.should.be.bignumber.equal(4);
 
-      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
-      await this.token.buyPack({value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
 
-      const postCardSetTotal = await this.token.cardSetsInCirculation();
+      const postCardSetTotal = await this.token.cardSetsInCirculation(_boxOne);
       // postCardSetTotal.should.be.bignumber.equal(0);
       console.log(`circulation ${postCardSetTotal}`);
 
@@ -124,5 +130,28 @@ contract('KOTA', function (accounts) {
     //     console.log(`RAND ${random}`);
     //   }
     // });
+  });
+
+  describe('owner minting', function () {
+
+    let _costOfPack;
+    let _cardsPerPack;
+
+    beforeEach(async function () {
+      _costOfPack = await this.token.costOfPack();
+      _cardsPerPack = await this.token.cardsPerPack();
+
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', {from: _owner}); // add card set
+    });
+
+    it('should allow owner to mint', async function () {
+      await this.token.mint(_buyerOne, _boxOne, _cardSetNumberOne, {from: _owner});
+      const tokens = await this.token.tokensOf(_buyerOne);
+
+      tokens.length.should.be.equal(1);
+      tokens[0].should.be.bignumber.equal(_boxOne + _cardSetNumberOne + 1);
+    });
+
   });
 });

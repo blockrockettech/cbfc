@@ -19,6 +19,9 @@ contract('ERC721Token', function (accounts) {
   const _cardSetOne = 10000;
   const _cardSetTwo = 20000;
 
+  const _boxOne = 100000;
+  const _boxTwo = 200000;
+
   const _cardSetOneSerialNumberOne = 10001;
   const _cardSetOneSerialNumberTwo = 10002;
   const _cardSetTwoSerialNumberOne = 20001;
@@ -38,8 +41,8 @@ contract('ERC721Token', function (accounts) {
   beforeEach(async function () {
     this.token = await KOTA.new({from: _owner});
 
-    await this.token.addCardSet(_cardSetOne, 10, 'One', 'One', {from: _owner}); // add card set with supply of 10
-    await this.token.addCardSet(_cardSetTwo, 10, 'Two', 'Two', {from: _owner}); // add card set with supply of 10
+    await this.token.addCardSet(_boxOne, _cardSetOne, 10, 'One', 'One', {from: _owner}); // add card set with supply of 10
+    await this.token.addCardSet(_boxOne, _cardSetTwo, 10, 'Two', 'Two', {from: _owner}); // add card set with supply of 10
   });
 
   describe('like a full ERC721', function () {

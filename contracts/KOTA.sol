@@ -8,6 +8,9 @@ import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
 
 /**
 * @title KOTA aka KnownOrigin Trading Assets
+*
+* max 999 cards per box
+* max 999 minted per card
 */
 contract KOTA is ERC721Token, Ownable {
   using SafeMath for uint256;
@@ -24,12 +27,15 @@ contract KOTA is ERC721Token, Ownable {
 
   uint256 public totalCardsInCirculation = 0;
   uint256 public totalCardsInCirculationSold = 0;
+  uint256 public defaultBoxNumber = 1000000;
 
   uint256 internal randNonce = 0;
 
   mapping(address => uint) public credits;
 
+  // TODO add artist share and artist address
   struct CardSet {
+    uint256 boxNumber;
     uint256 cardNumber;
     uint256 totalSupply;
     uint256 minted;
@@ -39,19 +45,31 @@ contract KOTA is ERC721Token, Ownable {
 
   mapping(uint256 => CardSet) public cardSets;
 
-  CardSet[] public cardSetCirculation;
+  mapping(uint256 => CardSet[]) internal boxNumberToCardSetCirculation;
+  mapping(uint256 => uint256[]) internal boxNumberToCardNumbers;
+  mapping(uint256 => uint256) internal boxNumberToCardsInCirculationSold;
+
+  //  CardSet[] public cardSetCirculation;
 
   constructor() public ERC721Token("KOTA", "KOTA") {}
 
   // can buy direct from contract if you send enough ether
   function() public payable {
-    buyPack();
+    buyPack(defaultBoxNumber);
   }
 
-  function addCardSet(uint256 _cardNumber, uint256 _totalSupply, bytes32 _cardName, string _cardUri) public onlyOwner {
-    CardSet memory newCardSet = CardSet(_cardNumber, _totalSupply, 0, _cardName, _cardUri);
+  function addCardSet(uint256 _boxNumber, uint256 _cardNumber, uint256 _totalSupply, bytes32 _cardName, string _cardUri) public onlyOwner {
+    CardSet memory newCardSet = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri);
+
+    // add to lookup by cardNumber
     cardSets[_cardNumber] = newCardSet;
-    cardSetCirculation.push(newCardSet);
+
+    // add to box circulation
+    boxNumberToCardSetCirculation[_boxNumber].push(newCardSet);
+    boxNumberToCardNumbers[_boxNumber].push(_cardNumber);
+
+    //    // add to general circulation
+    //    cardSetCirculation.push(newCardSet);
 
     totalCardsInCirculation = totalCardsInCirculation.add(_totalSupply);
   }
@@ -59,15 +77,19 @@ contract KOTA is ERC721Token, Ownable {
   /**
    * @dev mints a single card
    * @param _to who will get the card
+   * @param _boxNumber box number of card to mint
    * @param _cardNumber card number of the card set to transfer
    */
-  function mint(address _to, uint256 _cardNumber) public onlyOwner {
+  function mint(address _to, uint256 _boxNumber, uint256 _cardNumber) public onlyOwner {
+    require(cardSets[_cardNumber].boxNumber == _boxNumber);
+
     CardSet storage cardSet = cardSets[_cardNumber];
 
     // don't transfer last card!
     // buyPack removes from circulation via index - we don't know index here...
     require(cardSet.minted.add(1) < cardSet.totalSupply);
 
+    boxNumberToCardsInCirculationSold[_boxNumber] = boxNumberToCardsInCirculationSold[_boxNumber].add(1);
     totalCardsInCirculationSold = totalCardsInCirculationSold.add(1);
 
     _mint(_to, cardSet);
@@ -76,10 +98,11 @@ contract KOTA is ERC721Token, Ownable {
   /**
    * @dev Buys a pack of cards
    */
-  function buyPack() public payable {
+  function buyPack(uint256 _boxNumber) public payable {
     require(msg.value >= costOfPack);
+    require(cardSetsInCirculation(_boxNumber) > 0);
 
-    _randomPack();
+    _randomPack(_boxNumber);
 
     // reconcile payments
     owner.transfer(costOfPack);
@@ -92,10 +115,10 @@ contract KOTA is ERC721Token, Ownable {
   /**
    * @dev Redeem a pack of cards (via a credit)
    */
-  function redeemPack() public {
+  function redeemPack(uint256 _boxNumber) public {
     require(credits[msg.sender] > 0);
 
-    _randomPack();
+    _randomPack(_boxNumber);
 
     emit CardPackRedeemed(msg.sender, uint32(now));
   }
@@ -113,10 +136,19 @@ contract KOTA is ERC721Token, Ownable {
   }
 
   /**
-   * @dev number of card sets
+   * @dev number of card sets in circulation for a box
+   * @param _boxNumber box number of card sets
    */
-  function cardSetsInCirculation() public view returns (uint256 _cardSetCirculationLength) {
-    return cardSetCirculation.length;
+  function cardSetsInCirculation(uint256 _boxNumber) public view returns (uint256 _cardSetCirculationLength) {
+    return boxNumberToCardSetCirculation[_boxNumber].length;
+  }
+
+  /**
+   * @dev card numbers for a box
+   * @param _boxNumber box number of card sets
+   */
+  function cardNumbersOf(uint256 _boxNumber) public view returns (uint256 _cardNumbersLength) {
+    return boxNumberToCardNumbers[_boxNumber].length;
   }
 
   /**
@@ -163,32 +195,33 @@ contract KOTA is ERC721Token, Ownable {
     tokenBaseURI = _newBaseURI;
   }
 
-  function _randomCardSetIndex(uint _index) internal returns (uint) {
-    require(_index > 0);
-
-    randNonce = randNonce.add(1);
-    bytes memory packed = abi.encodePacked(blockhash(block.number - _index), msg.sender, randNonce);
-    return uint256(keccak256(packed)) % cardSetsInCirculation();
-  }
-
-  function _randomPack() internal {
+  function _randomPack(uint256 _boxNumber) internal {
     // thanks CryptoStrikers!
     require(msg.sender == tx.origin);
 
     for (uint i = 0; i < cardsPerPack; i++) {
-      uint _index = _randomCardSetIndex(i + 1);
-      CardSet storage pickedSet = cardSetCirculation[_index];
+      uint _index = _randomCardSetIndex(_boxNumber, i + 1);
+      CardSet storage pickedSet = boxNumberToCardSetCirculation[_boxNumber][_index];
 
       _mint(msg.sender, pickedSet);
 
       // remove from circulation if minted == totalSupply
       if (pickedSet.minted == pickedSet.totalSupply) {
-        _removeCardSetAtIndex(_index);
+        _removeCardSetAtIndex(_boxNumber, _index);
         emit CardSetSoldOut(pickedSet.cardNumber, uint32(now));
       }
     }
 
+    boxNumberToCardsInCirculationSold[_boxNumber] = boxNumberToCardsInCirculationSold[_boxNumber].add(cardsPerPack);
     totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
+  }
+
+  function _randomCardSetIndex(uint256 _boxNumber, uint _index) internal returns (uint) {
+    require(_index > 0);
+
+    randNonce = randNonce.add(1);
+    bytes memory packed = abi.encodePacked(blockhash(block.number - _index), msg.sender, randNonce);
+    return uint256(keccak256(packed)) % cardSetsInCirculation(_boxNumber);
   }
 
   function _mint(address _to, CardSet storage _cardSet) internal {
@@ -197,7 +230,7 @@ contract KOTA is ERC721Token, Ownable {
     require(_cardSet.minted <= _cardSet.totalSupply);
 
     _cardSet.minted = _cardSet.minted.add(1);
-    uint256 cardSerialNumber = _cardSet.cardNumber.add(_cardSet.minted);
+    uint256 cardSerialNumber = _cardSet.boxNumber.add(_cardSet.cardNumber).add(_cardSet.minted);
 
     super._mint(_to, cardSerialNumber);
     super._setTokenURI(cardSerialNumber, _cardSet.cardURI);
@@ -205,11 +238,11 @@ contract KOTA is ERC721Token, Ownable {
     emit CardMinted(_to, cardSerialNumber, _cardSet.cardName, uint32(now));
   }
 
-  function _removeCardSetAtIndex(uint256 _index) internal {
-    uint lastIndex = cardSetCirculation.length - 1;
+  function _removeCardSetAtIndex(uint256 _boxNumber, uint256 _index) internal {
+    uint lastIndex = cardSetsInCirculation(_boxNumber) - 1;
     require(_index <= lastIndex);
 
-    cardSetCirculation[_index] = cardSetCirculation[lastIndex];
-    cardSetCirculation.length--;
+    boxNumberToCardSetCirculation[_boxNumber][_index] = boxNumberToCardSetCirculation[_boxNumber][lastIndex];
+    boxNumberToCardSetCirculation[_boxNumber].length--;
   }
 }

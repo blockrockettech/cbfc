@@ -24,16 +24,18 @@ module.exports = async function (deployer, network, accounts) {
 
   console.log(`_owner = ${_owner}`);
 
-  const kodaIpfsCache = {
-    'coin_journal_coinfest_day': 'QmQUJkPs4keJEaJhVcpJfaivxsUYAPQPk7a8DzN26AA7Zm',
+  const kodaIpfsCacheBox0 = {
     'stina_jones_happy_fox': 'QmT9iCuqkB9i9U2KXm6YhH5bn6jY7YJwWJHMu1EAsTtB4o',
     'stina_jones_happy_friday_bird': 'QmWvF9H5ejccr5sVvvdM7Yj34pPP2iZGwkbyqQ2xvCKJka',
     'stina_jones_spring_morning': 'QmTenX8zYBzCPy3HPDWiDLMPAAjtvC4muqWDW5A1yp6BeB',
     'stina_jones_running_riot': 'QmVpFrBK5gupqGZNHCrGH65Ju79SivaeiWcsNkjCQDJLF6',
+  };
+
+  const kodaIpfsCacheBox1 = {
+    'coin_journal_coinfest_day': 'QmQUJkPs4keJEaJhVcpJfaivxsUYAPQPk7a8DzN26AA7Zm',
     'franky_aguilar_insta_tweety': 'Qmbdf5KBGAkNeGthdZXdqzKM6J2FLvnqv1PRh74ehxo76L',
     'franky_aguilar_martian_bang': 'QmXpsBob8uD4FxWDjh74qkY3uH4CdEy5eCyStB2YQKu7uK',
     'franky_aguilar_bunny_bags': 'QmZnxsBjuDCMr22na5qjoZFNMytG5xBexTdVC5HPQaLkFT',
-    'franky_aguilar_burning_fiat': 'QmZ5aFJypwSSLbaQUwejUAUGXyuHfvV9LGMCvQQckacKAY',
     'obxium_ddf5': 'QmeEwVK34xSB6s3cBJQsvHUwDeKkjvBu2i8b9SnLjhQGQa',
     'drawingly_willingly_devilish_run': 'QmeL43j1gkKmGkmHcwmZqvevKu69LVhULDkgnsmTLP7TCQ',
     'hackatao_they_live': 'QmTbJvdAMQAPuyHiv3i6W4nDKguTQZpqfocn4YJ6Pps7H1',
@@ -41,8 +43,14 @@ module.exports = async function (deployer, network, accounts) {
   };
 
   let index = 0;
-  _.forOwn(kodaIpfsCache, async (v, k, i) => {
+  _.forOwn(kodaIpfsCacheBox0, async (v, k, i) => {
     ++index;
-    await deployedKOTA.addCardSet(1000 * index, 100, k, v);
+    await deployedKOTA.addCardSet(1000000, 1000 * index, 100, k, v);
+  });
+
+  index = 0;
+  _.forOwn(kodaIpfsCacheBox1, async (v, k, i) => {
+    ++index;
+    await deployedKOTA.addCardSet(2000000, 1000 * index, 100, k, v);
   });
 };
