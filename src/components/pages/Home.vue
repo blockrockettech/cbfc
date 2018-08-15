@@ -1,10 +1,10 @@
 <template>
   <div>
-    <h1 class="display-4">Buy packs of <span class="text-primary">KOTA</span> cards</h1>
-    <h2 v-if="totalCardsInCirculation && totalCardsInCirculationSold">
-      <span class="badge badge-primary">{{ totalCardsInCirculation.toNumber() }} EXIST</span>
-      <span class="badge badge-primary">{{ totalCardsInCirculationSold.toNumber() }} SOLD</span>
-    </h2>
+    <h1 class="display-4">KOTA</h1>
+    <!--<h2 v-if="totalCardsInCirculation && totalCardsInCirculationSold">-->
+      <!--<span class="badge badge-primary">{{ totalCardsInCirculation.toNumber() }} EXIST</span>-->
+      <!--<span class="badge badge-primary">{{ totalCardsInCirculationSold.toNumber() }} SOLD</span>-->
+    <!--</h2>-->
     <div class="row mt-5">
       <div class="col-sm-12 kota-box mb-5" v-for="box in boxNumbers">
         <span class="badge badge-light">{{ box.toString(10) }}</span>
