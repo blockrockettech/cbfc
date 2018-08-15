@@ -27,6 +27,8 @@ contract KOTA is ERC721Token, Ownable {
 
   uint256 public totalCardsInCirculation = 0;
   uint256 public totalCardsInCirculationSold = 0;
+  uint256 public totalWei = 0;
+
   uint256 public defaultBoxNumber = 1000000;
 
   uint256 internal randNonce = 0;
@@ -43,13 +45,13 @@ contract KOTA is ERC721Token, Ownable {
     string cardURI;
   }
 
-  mapping(uint256 => CardSet) public cardSets;
+  mapping(uint256 => CardSet) public boxCardNumberToCardSet;
 
   mapping(uint256 => CardSet[]) internal boxNumberToCardSetCirculation;
   mapping(uint256 => uint256[]) internal boxNumberToCardNumbers;
   mapping(uint256 => uint256) internal boxNumberToCardsInCirculationSold;
 
-  //  CardSet[] public cardSetCirculation;
+  uint256[] internal boxNumbers;
 
   constructor() public ERC721Token("KOTA", "KOTA") {}
 
@@ -62,11 +64,18 @@ contract KOTA is ERC721Token, Ownable {
     CardSet memory newCardSet = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri);
 
     // add to lookup by cardNumber
-    cardSets[_cardNumber] = newCardSet;
+    uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
+    boxCardNumberToCardSet[_boxCardNumber] = newCardSet;
+
+    // presumes you would not add new cards to the box once all sold
+    if (boxNumberToCardSetCirculation[_boxNumber].length == 0) {
+      boxNumbers.push(_boxNumber);
+    }
 
     // add to box circulation
     boxNumberToCardSetCirculation[_boxNumber].push(newCardSet);
     boxNumberToCardNumbers[_boxNumber].push(_cardNumber);
+
 
     //    // add to general circulation
     //    cardSetCirculation.push(newCardSet);
@@ -81,9 +90,10 @@ contract KOTA is ERC721Token, Ownable {
    * @param _cardNumber card number of the card set to transfer
    */
   function mint(address _to, uint256 _boxNumber, uint256 _cardNumber) public onlyOwner {
-    require(cardSets[_cardNumber].boxNumber == _boxNumber);
+    uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
+    require(boxCardNumberToCardSet[_boxCardNumber].boxNumber > 0); // ensure real card set
 
-    CardSet storage cardSet = cardSets[_cardNumber];
+    CardSet storage cardSet = boxCardNumberToCardSet[_boxCardNumber];
 
     // don't transfer last card!
     // buyPack removes from circulation via index - we don't know index here...
@@ -106,6 +116,7 @@ contract KOTA is ERC721Token, Ownable {
 
     // reconcile payments
     owner.transfer(costOfPack);
+    totalWei = totalWei.add(costOfPack);
 
     // give back the change - if any
     msg.sender.transfer(msg.value - costOfPack);
@@ -117,6 +128,9 @@ contract KOTA is ERC721Token, Ownable {
    */
   function redeemPack(uint256 _boxNumber) public {
     require(credits[msg.sender] > 0);
+
+    // remove credit
+    credits[msg.sender] = credits[msg.sender].sub(1);
 
     _randomPack(_boxNumber);
 
@@ -133,6 +147,13 @@ contract KOTA is ERC721Token, Ownable {
    */
   function tokensOf(address _owner) public view returns (uint256[] _tokenIds) {
     return ownedTokens[_owner];
+  }
+
+  /**
+   * @dev All box numbers
+   */
+  function allBoxNumbers() public view returns (uint256[] _boxNumbers) {
+    return boxNumbers;
   }
 
   /**

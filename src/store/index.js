@@ -12,6 +12,7 @@ import kotaJson from '../../build/contracts/KOTA.json';
 
 const kota = contract(kotaJson);
 
+const boxIncrements = 1000000;
 const cardSetIncrements = 1000;
 
 Vue.use(Vuex);
@@ -37,6 +38,8 @@ const store = new Vuex.Store({
     owner: null,
 
     // contract totals
+    defaultBoxNumber: 1000000,
+    boxNumbers: null,
     totalSupply: null,
     costOfPack: null,
     cardsPerPack: null,
@@ -48,17 +51,20 @@ const store = new Vuex.Store({
     cardSets: null
   },
   getters: {
-    cardSetNumberFromTokenId: (state) => (tokenId) => {
+    boxNumberFromTokenId: (state) => (tokenId) => {
+      return (parseInt(tokenId.toString(10) / boxIncrements) * boxIncrements);
+    },
+    boxCardSetNumberFromTokenId: (state) => (tokenId) => {
       return (parseInt(tokenId.toString(10) / cardSetIncrements));
     },
-    cardSetFromTokenId: (state, getters) => (tokenId) => {
-      return getters.cardSetNumberFromTokenId(tokenId) * cardSetIncrements;
+    boxCardSetFromTokenId: (state, getters) => (tokenId) => {
+      return getters.boxCardSetNumberFromTokenId(tokenId) * cardSetIncrements;
     },
     cardSerialNumberFromTokenId: (state, getters) => (tokenId) => {
-      return parseInt(tokenId - getters.cardSetFromTokenId(tokenId));
+      return parseInt(tokenId - getters.boxCardSetFromTokenId(tokenId));
     },
-    lookupCardSet: (state, getters) => (tokenId) => {
-      return state.cardSets[getters.cardSetFromTokenId(tokenId)];
+    lookupBoxCardSet: (state, getters) => (tokenId) => {
+      return state.cardSets[getters.boxCardSetFromTokenId(tokenId)];
     }
   },
   mutations: {
@@ -87,8 +93,8 @@ const store = new Vuex.Store({
       cardsPerPack,
       totalCardsInCirculation,
       totalCardsInCirculationSold,
-      cardSetsInCirculation,
-      accountCredits
+      accountCredits,
+      boxNumbers
     }) {
       state.totalSupply = totalSupply;
       state.contractSymbol = symbol;
@@ -99,8 +105,8 @@ const store = new Vuex.Store({
       state.cardsPerPack = cardsPerPack;
       state.totalCardsInCirculation = totalCardsInCirculation;
       state.totalCardsInCirculationSold = totalCardsInCirculationSold;
-      state.cardSetsInCirculation = cardSetsInCirculation;
       state.accountCredits = accountCredits;
+      state.boxNumbers = boxNumbers;
     },
     [mutations.SET_ACCOUNT] (state, {account, accountBalance}) {
       state.account = account;
@@ -123,14 +129,17 @@ const store = new Vuex.Store({
       const contract = await kota.deployed();
       const tokens = await contract.tokensOf(state.account);
 
-      const uniqueCardNumbers = _.uniq(_.map(tokens, (id) => parseInt(id / cardSetIncrements) * cardSetIncrements));
-      let dataPromises = _.map(uniqueCardNumbers, (cardNumber) => contract.cardSets(cardNumber));
+      const uniqueBoxCardNumbers = _.uniq(_.map(tokens, (id) => {
+        return parseInt(id / cardSetIncrements) * cardSetIncrements;
+      }));
 
+      let dataPromises = _.map(uniqueBoxCardNumbers, (boxCardNumber) => contract.boxCardNumberToCardSet(boxCardNumber));
       const cardSets = await Promise.all(dataPromises);
+
       const cardSetsObj = _.reduce(
         cardSets,
         (obj, val) => {
-          obj[val[0].toString(10)] = val;
+          obj[val[0].toNumber() + val[1].toNumber()] = val;
           return obj;
         },
         {}
@@ -226,8 +235,8 @@ const store = new Vuex.Store({
             contract.cardsPerPack(),
             contract.totalCardsInCirculation(),
             contract.totalCardsInCirculationSold(),
-            contract.cardSetsInCirculation(),
-            contract.credits(state.account)
+            contract.credits(state.account),
+            contract.allBoxNumbers(),
           ])
             .then((results) => {
               commit(mutations.SET_CONTRACT_DETAILS, {
@@ -240,31 +249,25 @@ const store = new Vuex.Store({
                 cardsPerPack: results[6],
                 totalCardsInCirculation: results[7],
                 totalCardsInCirculationSold: results[8],
-                cardSetsInCirculation: results[9],
-                accountCredits: results[10]
+                accountCredits: results[9],
+                boxNumbers: results[10]
               });
             })
             .catch((error) => console.log('Something went bang!', error));
         }).catch((error) => console.log('Something went bang!', error));
     },
-    [actions.BUY_PACK] ({commit, dispatch, state}) {
+    [actions.BUY_PACK] ({commit, dispatch, state}, boxNumber) {
+      console.log(`BUY ${boxNumber}`);
+
       kota.deployed()
         .then((contract) => {
           console.log(`buying pack...`);
-          let tx = contract.buyPack({value: state.costOfPack, from: state.account});
+          let tx = contract.buyPack(boxNumber, {value: state.costOfPack, from: state.account});
 
           console.log(tx);
 
           tx
             .then((data) => {
-
-              Vue.$notify({
-                group: 'tx',
-                type: 'success',
-                title: 'Buy Pack',
-                text: 'Purchase successful!'
-              });
-
               setInterval(function () {
                 dispatch(actions.GET_ASSETS_PURCHASED_FOR_ACCOUNT);
               }, 10000);
