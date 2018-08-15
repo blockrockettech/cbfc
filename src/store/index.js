@@ -48,7 +48,8 @@ const store = new Vuex.Store({
     cardSetsInCirculation: null,
     cardSetCirculation: null,
 
-    cardSets: null
+    cardSets: null,
+    boxes: null
   },
   getters: {
     boxNumberFromTokenId: (state) => (tokenId) => {
@@ -82,6 +83,9 @@ const store = new Vuex.Store({
     },
     [mutations.SET_CARD_SETS] (state, cardSets) {
       Vue.set(state, 'cardSets', cardSets);
+    },
+    [mutations.SET_BOXES] (state, boxes) {
+      Vue.set(state, 'boxes', boxes);
     },
     [mutations.SET_CONTRACT_DETAILS] (state, {
       name,
@@ -252,6 +256,22 @@ const store = new Vuex.Store({
                 accountCredits: results[9],
                 boxNumbers: results[10]
               });
+
+              // load box details
+              return Promise.all(results[10].map((boxNumber) => contract.boxNumberToBox(boxNumber)));
+            })
+            .then((results) => {
+
+              const boxesObj = _.reduce(
+                results,
+                (obj, val) => {
+                  obj[val[0].toNumber()] = val;
+                  return obj;
+                },
+                {}
+              );
+
+              commit(mutations.SET_BOXES, boxesObj);
             })
             .catch((error) => console.log('Something went bang!', error));
         }).catch((error) => console.log('Something went bang!', error));

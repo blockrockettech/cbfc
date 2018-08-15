@@ -6,9 +6,11 @@
       <span class="badge badge-primary">{{ totalCardsInCirculationSold.toNumber() }} SOLD</span>
     </h2>
     <div class="row mt-5">
-      <div class="col kota-box m2" v-for="box in boxNumbers">
-        <h2>BOX {{ box.toString(10) }}</h2>
-        <div class="row">
+      <div class="col-sm-12 kota-box mb-5" v-for="box in boxNumbers">
+        <span class="badge badge-light">{{ box.toString(10) }}</span>
+        <h2>{{ boxes[box.toNumber()][1] }}</h2>
+        <h3>{{ boxes[box.toNumber()][2] }}</h3>
+        <div class="row text-center">
           <div class="col">
             <a class="btn btn-primary btn-xlg" href="#" role="button" @click="BUY_PACK(box)">Buy Pack</a>
             <ul class="mt-2" v-if="cardsPerPack && costOfPack">
@@ -43,7 +45,8 @@
         'totalCardsInCirculation',
         'totalCardsInCirculationSold',
         'accountCredits',
-        'boxNumbers'
+        'boxNumbers',
+        'boxes'
       ]),
       ...mapGetters([])
     },
@@ -64,7 +67,6 @@
 
   .kota-box {
     background-color: $secondary;
-    margin: 20px;
     color: $body-bg;
   }
 
