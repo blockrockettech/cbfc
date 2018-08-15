@@ -1,10 +1,6 @@
 const assertRevert = require('../helpers/assertRevert');
-const sendTransaction = require('../helpers/sendTransaction').sendTransaction;
 const etherToWei = require('../helpers/etherToWei');
-
-const advanceBlock = require('../helpers/advanceToBlock');
-
-const _ = require('lodash');
+const bytes32ToString = require('../helpers/bytes32ToString');
 
 const BigNumber = web3.BigNumber;
 
@@ -29,59 +25,76 @@ contract.only('KOTA', function (accounts) {
   const _cardSetNumberThree = 3000;
   const _cardSetNumberFour = 4000;
 
-  const _cardSetOneSerialNumberOne = 1001;
-  const _cardSetTwoSerialNumberTwo = 2002;
-
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-  before(async function () {
-    // Advance to the next block to correctly read time in the solidity "now" function interpreted by testrpc
-    await advanceBlock();
-  });
+  before(async function () {});
 
   beforeEach(async function () {
     this.token = await KOTA.new({from: _owner});
+    await this.token.addBox(_boxOne, 'Box One', 'One Desc', 'abc', {from: _owner});
+    await this.token.addBox(_boxTwo, 'Box Two', 'Two Desc', 'xyz', {from: _owner});
   });
 
-  describe('remove packs when exhausted', function () {
+  describe('ensure boxes can be added', function () {
+    it('should have 2 boxes in circulation', async function () {
+      const numberOfBoxes = await this.token.allBoxNumbers();
+      numberOfBoxes.length.should.be.equal(2);
 
-    let _costOfPack;
-    let _cardsPerPack;
+      // ensure boxes in all boxes array
+      numberOfBoxes.map(bn => bn.toNumber()).indexOf(_boxOne).should.be.greaterThan(-1);
+      numberOfBoxes.map(bn => bn.toNumber()).indexOf(_boxTwo).should.be.greaterThan(-1);
+    });
+
+    it('should revert if not owner', async function () {
+      await assertRevert(this.token.addBox(_boxOne, 'Box One', 'One Desc', 'abc', {from: _buyerOne}));
+    });
+
+    it('should have fully described boxes', async function () {
+      const boxOne = await this.token.boxNumberToBox(_boxOne);
+
+      boxOne[0].toNumber().should.be.equal(_boxOne);
+      boxOne[1].should.be.equal('Box One');
+      boxOne[2].should.be.equal('One Desc');
+      boxOne[3].should.be.equal('abc');
+
+      const boxTwo = await this.token.boxNumberToBox(_boxTwo);
+
+      boxTwo[0].toNumber().should.be.equal(_boxTwo);
+      boxTwo[1].should.be.equal('Box Two');
+      boxTwo[2].should.be.equal('Two Desc');
+      boxTwo[3].should.be.equal('xyz');
+    });
+  });
+
+  describe('ensure card sets can be added', function () {
+
     beforeEach(async function () {
-      _costOfPack = await this.token.costOfPack();
-      _cardsPerPack = await this.token.cardsPerPack();
-
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, 'One', 'One', {from: _owner}); // add card set
-      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 4, 'Two', 'Two', {from: _owner}); // add card set
-      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 4, 'Three', 'Three', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
     });
 
-    it('should have 3 card sets in circulation ', async function () {
-      const numberOfSets = await this.token.cardSetsInCirculation(_boxOne);
-      numberOfSets.should.be.bignumber.equal(3);
+    it('should have 2 card sets in circulation', async function () {
+      const cardSetsForBox = await this.token.cardNumbersOf(_boxOne);
+      cardSetsForBox.length.should.be.equal(1);
 
-      const totalCardNumbers = await this.token.cardNumbersOf(_boxOne);
-      totalCardNumbers.should.be.bignumber.equal(3);
+      const cardSetsCirculationForBox = await this.token.cardSetsInCirculation(_boxOne);
+      cardSetsCirculationForBox.should.be.bignumber.equal(1);
 
-      const totalCirculation = await this.token.totalCardsInCirculation();
-      totalCirculation.should.be.bignumber.equal(12);
+      // ensure boxes in all boxes array
+      cardSetsForBox.map(bn => bn.toNumber()).indexOf(_cardSetNumberOne).should.be.greaterThan(-1);
     });
 
-    it('should own all cards after buying packs, all cards should be exhausted and no card sets in circulation', async function () {
-      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
-      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
-      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
+    it('should have fully described card sets', async function () {
+      const cardSetOne = await this.token.boxCardNumberToCardSet(_boxOne + _cardSetNumberOne);
 
-      const balance = await this.token.balanceOf(_buyerOne);
-      balance.should.be.bignumber.equal(12);
-
-      const numberOfSets = await this.token.cardSetsInCirculation(_boxOne);
-      numberOfSets.should.be.bignumber.equal(0);
-
-      const totalSold = await this.token.totalCardsInCirculationSold();
-      totalSold.should.be.bignumber.equal(12);
+      cardSetOne[0].toNumber().should.be.equal(_boxOne);
+      cardSetOne[1].toNumber().should.be.equal(_cardSetNumberOne);
+      cardSetOne[2].toNumber().should.be.equal(8);
+      cardSetOne[3].toNumber().should.be.equal(0);
+      bytes32ToString(cardSetOne[4]).should.be.equal('One\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000');
+      cardSetOne[5].should.be.equal('One');
     });
   });
+
 
   describe('buy packs with ether', function () {
 
@@ -130,6 +143,46 @@ contract.only('KOTA', function (accounts) {
     //     console.log(`RAND ${random}`);
     //   }
     // });
+  });
+
+  describe('remove packs when exhausted', function () {
+
+    let _costOfPack;
+    let _cardsPerPack;
+    beforeEach(async function () {
+      _costOfPack = await this.token.costOfPack();
+      _cardsPerPack = await this.token.cardsPerPack();
+
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, 'One', 'One', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 4, 'Two', 'Two', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 4, 'Three', 'Three', {from: _owner}); // add card set
+    });
+
+    it('should have 3 card sets in circulation ', async function () {
+      const numberOfSets = await this.token.cardSetsInCirculation(_boxOne);
+      numberOfSets.should.be.bignumber.equal(3);
+
+      const totalCardNumbers = await this.token.cardNumbersOf(_boxOne);
+      totalCardNumbers.length.should.be.bignumber.equal(3);
+
+      const totalCirculation = await this.token.totalCardsInCirculation();
+      totalCirculation.should.be.bignumber.equal(12);
+    });
+
+    it('should own all cards after buying packs, all cards should be exhausted and no card sets in circulation', async function () {
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
+      await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
+
+      const balance = await this.token.balanceOf(_buyerOne);
+      balance.should.be.bignumber.equal(12);
+
+      const numberOfSets = await this.token.cardSetsInCirculation(_boxOne);
+      numberOfSets.should.be.bignumber.equal(0);
+
+      const totalSold = await this.token.totalCardsInCirculationSold();
+      totalSold.should.be.bignumber.equal(12);
+    });
   });
 
   describe('owner minting', function () {

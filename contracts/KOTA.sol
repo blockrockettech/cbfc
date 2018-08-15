@@ -35,6 +35,14 @@ contract KOTA is ERC721Token, Ownable {
 
   mapping(address => uint) public credits;
 
+  // TODO add cost and cards per pack
+  struct Box {
+    uint256 boxNumber;
+    string title;
+    string description;
+    string boxURI;
+  }
+
   // TODO add artist share and artist address
   struct CardSet {
     uint256 boxNumber;
@@ -44,11 +52,14 @@ contract KOTA is ERC721Token, Ownable {
     bytes32 cardName;
     string cardURI;
   }
+  mapping(uint256 => Box) public boxNumberToBox;
 
   mapping(uint256 => CardSet) public boxCardNumberToCardSet;
 
   mapping(uint256 => CardSet[]) internal boxNumberToCardSetCirculation;
   mapping(uint256 => uint256[]) internal boxNumberToCardNumbers;
+
+  mapping(uint256 => uint256) internal boxNumberToCardsInCirculation;
   mapping(uint256 => uint256) internal boxNumberToCardsInCirculationSold;
 
   uint256[] internal boxNumbers;
@@ -60,26 +71,28 @@ contract KOTA is ERC721Token, Ownable {
     buyPack(defaultBoxNumber);
   }
 
+  function addBox(uint256 _boxNumber, string _title, string _description, string _boxUri) public onlyOwner {
+    Box memory _newBox = Box(_boxNumber, _title, _description, _boxUri);
+
+    boxNumberToBox[_boxNumber] = _newBox;
+    boxNumbers.push(_boxNumber);
+  }
+
   function addCardSet(uint256 _boxNumber, uint256 _cardNumber, uint256 _totalSupply, bytes32 _cardName, string _cardUri) public onlyOwner {
-    CardSet memory newCardSet = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri);
+    require(boxNumberToBox[_boxNumber].boxNumber > 0, "Box should exist");
 
-    // add to lookup by cardNumber
     uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
-    boxCardNumberToCardSet[_boxCardNumber] = newCardSet;
+    require(boxCardNumberToCardSet[_boxCardNumber].cardNumber == 0, "Card Set should not exist");
 
-    // presumes you would not add new cards to the box once all sold
-    if (boxNumberToCardSetCirculation[_boxNumber].length == 0) {
-      boxNumbers.push(_boxNumber);
-    }
+    // add new card set by boxCardNumber
+    CardSet memory _newCardSet = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri);
+    boxCardNumberToCardSet[_boxCardNumber] = _newCardSet;
 
     // add to box circulation
-    boxNumberToCardSetCirculation[_boxNumber].push(newCardSet);
+    boxNumberToCardSetCirculation[_boxNumber].push(_newCardSet);
     boxNumberToCardNumbers[_boxNumber].push(_cardNumber);
 
-
-    //    // add to general circulation
-    //    cardSetCirculation.push(newCardSet);
-
+    boxNumberToCardsInCirculation[_boxNumber] = boxNumberToCardsInCirculation[_boxNumber].add(_totalSupply);
     totalCardsInCirculation = totalCardsInCirculation.add(_totalSupply);
   }
 
@@ -168,8 +181,8 @@ contract KOTA is ERC721Token, Ownable {
    * @dev card numbers for a box
    * @param _boxNumber box number of card sets
    */
-  function cardNumbersOf(uint256 _boxNumber) public view returns (uint256 _cardNumbersLength) {
-    return boxNumberToCardNumbers[_boxNumber].length;
+  function cardNumbersOf(uint256 _boxNumber) public view returns (uint256[] _cardNumbersArray) {
+    return boxNumberToCardNumbers[_boxNumber];
   }
 
   /**
