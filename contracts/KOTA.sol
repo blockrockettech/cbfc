@@ -59,8 +59,8 @@ contract KOTA is ERC721Token, Ownable {
   mapping(uint256 => CardSet[]) internal boxNumberToCardSetCirculation;
   mapping(uint256 => uint256[]) internal boxNumberToCardNumbers;
 
-  mapping(uint256 => uint256) internal boxNumberToCardsInCirculation;
-  mapping(uint256 => uint256) internal boxNumberToCardsInCirculationSold;
+  mapping(uint256 => uint256) public boxNumberToCardsInCirculation;
+  mapping(uint256 => uint256) public boxNumberToCardsInCirculationSold;
 
   uint256[] internal boxNumbers;
 

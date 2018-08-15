@@ -93,8 +93,15 @@ contract.only('KOTA', function (accounts) {
       bytes32ToString(cardSetOne[4]).should.be.equal('One\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000');
       cardSetOne[5].should.be.equal('One');
     });
-  });
 
+    it('should have correct circulation and sold totals for card sets', async function () {
+      const boxCirculation = await this.token.boxNumberToCardsInCirculation(_boxOne);
+      boxCirculation.should.be.bignumber.equal(8);
+
+      const boxCirculationSold = await this.token.boxNumberToCardsInCirculationSold(_boxOne);
+      boxCirculationSold.should.be.bignumber.equal(0);
+    });
+  });
 
   describe('buy packs with ether', function () {
 
