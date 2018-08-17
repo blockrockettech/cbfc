@@ -52,16 +52,19 @@ const store = new Vuex.Store({
     boxes: null
   },
   getters: {
-    boxNumberFromTokenId: (state) => (tokenId) => {
-      return (parseInt(tokenId.toString(10) / boxIncrements) * boxIncrements);
+    boxNumberFromTokenId: (state, getters) => (tokenId) => {
+      return parseInt(tokenId.toString(10) / boxIncrements) * boxIncrements;
     },
-    boxCardSetNumberFromTokenId: (state) => (tokenId) => {
-      return (parseInt(tokenId.toString(10) / cardSetIncrements));
+    boxCardSetNumberFromTokenId: (state, getters) => (tokenId) => {
+      return parseInt((tokenId.toString(10) / cardSetIncrements));
     },
     boxCardSetFromTokenId: (state, getters) => (tokenId) => {
-      return getters.boxCardSetNumberFromTokenId(tokenId) * cardSetIncrements;
+      return parseInt(getters.boxCardSetNumberFromTokenId(tokenId) * cardSetIncrements);
     },
-    cardSerialNumberFromTokenId: (state, getters) => (tokenId) => {
+    cardSetFromTokenId: (state, getters) => (tokenId) => {
+      return getters.boxCardSetFromTokenId(tokenId) - getters.boxNumberFromTokenId(tokenId);
+    },
+    boxCardSetSerialNumberFromTokenId: (state, getters) => (tokenId) => {
       return parseInt(tokenId - getters.boxCardSetFromTokenId(tokenId));
     },
     lookupBoxCardSet: (state, getters) => (tokenId) => {

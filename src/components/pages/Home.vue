@@ -11,25 +11,13 @@
         </h1>
         <div class="row text-center pt-4 pb-4">
           <div class="col">
-            <!--<img src="../../../static/Card_back.jpg" style="max-height: 150px; transform: rotate(20deg);"/>-->
-            <!--<img src="../../../static/Card_back.jpg" style="max-height: 150px; transform: rotate(20deg);"/>-->
-            <!--<img src="../../../static/Card_back.jpg" style="max-height: 150px; transform: rotate(20deg);"/>-->
-
-            <!--<div class="clearfix mb-2"></div>-->
-
             <a class="btn btn-warning btn-xlg" href="#" role="button" @click="BUY_PACK(boxNumber)">Buy Pack</a>
             <ul class="mt-2" v-if="cardsPerPack && costOfPack">
-              <li><span class="small">Cost per Pack:</span> {{ costOfPack | toEth }} ETH</li>
-              <li><span class="small">Cards per Pack:</span> {{ cardsPerPack.toString(10) }}</li>
+              <li><span class="kota-box-extra-text pl-3 pr-3">Cost per Pack: {{ costOfPack | toEth }} ETH</span></li>
+              <li><span class="kota-box-extra-text pl-3 pr-3">Cards per Pack: {{ cardsPerPack.toString(10) }}</span></li>
             </ul>
           </div>
           <div class="col" v-if="accountCredits.toNumber() > 0">
-            <!--<img src="../../../static/Card_back.jpg" style="max-height: 150px; transform: rotate(20deg);"/>-->
-            <!--<img src="../../../static/Card_back.jpg" style="max-height: 150px; transform: rotate(20deg);"/>-->
-            <!--<img src="../../../static/Card_back.jpg" style="max-height: 150px; transform: rotate(20deg);"/>-->
-
-            <!--<div class="clearfix mb-2"></div>-->
-
             <a class="btn btn-warning btn-xlg" href="#" role="button" @click="REDEEM_PACK(boxNumber)">Redeem Pack</a>
           </div>
         </div>
@@ -82,6 +70,11 @@
   .kota-box-text {
     background-color: $body-color;
     color: $secondary;
+  }
+
+  .kota-box-extra-text {
+    background-color: #f2f5fb;
+    color: $primary;
   }
 
   .stina {

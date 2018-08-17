@@ -1,6 +1,6 @@
 <template>
   <div v-if="assetsPurchasedByAccount">
-    <h1 class="display-4">My Cards <span class="badge badge-primary">{{ assetsPurchasedByAccount.length }}</span></h1>
+    <h1 class="display-4 text-secondary">My KOTAs <span class="badge badge-secondary">{{ assetsPurchasedByAccount.length }}</span></h1>
     <pre class="text-muted">{{ account }}</pre>
     <div class="card-deck ml-5 mr-5">
       <div class="col-auto mx-auto" v-for="tokenId in assetsPurchasedByAccount">
@@ -30,7 +30,6 @@
         'web3'
       ]),
       ...mapGetters([
-        'boxCardSetFromTokenId',
         'lookupBoxCardSet'
       ])
     },
