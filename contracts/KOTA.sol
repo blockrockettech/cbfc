@@ -22,6 +22,7 @@ contract KOTA is ERC721Token, Ownable {
 
   string internal tokenBaseURI = "https://ipfs.infura.io/ipfs/";
 
+  // TODO move into box
   uint256 public costOfPack = 0.01 ether;
   uint8 constant public cardsPerPack = 4;
 
