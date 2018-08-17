@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Home from '@/components/pages/Home';
+import Box from '@/components/pages/Box';
 import MyCards from '@/components/pages/MyCards';
 import MyCard from '@/components/pages/MyCard';
 
@@ -21,6 +22,12 @@ export default new Router({
       path: '/',
       name: 'home',
       component: Home
+    },
+    {
+      path: '/:boxNumber',
+      name: 'box',
+      component: Box,
+      props: true
     },
     {
       path: '/mycards',

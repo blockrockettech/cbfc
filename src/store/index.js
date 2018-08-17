@@ -296,11 +296,11 @@ const store = new Vuex.Store({
         })
         .catch((error) => console.log('Something went bang!', error));
     },
-    [actions.REDEEM_PACK] ({commit, dispatch, state}) {
+    [actions.REDEEM_PACK] ({commit, dispatch, state}, boxNumber) {
       kota.deployed()
         .then((contract) => {
           console.log(`buying pack...`);
-          let tx = contract.redeemPack({from: state.account});
+          let tx = contract.redeemPack(boxNumber, {from: state.account});
 
           console.log(tx);
 

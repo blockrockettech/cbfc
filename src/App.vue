@@ -1,7 +1,22 @@
 <template>
   <div>
+    <header>
+      <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+        <router-link :to="{ name: 'home' }" class="navbar-brand pl-5">
+          <img src="../static/Kota_logo_H-01.svg" style="max-height: 50px"/>
+        </router-link>
 
-    <main role="main" class="container main-container">
+        <ul class="navbar-nav mr-auto"></ul>
+        <ul class="navbar-nav">
+          <li class="nav-item pr-5">
+            <router-link :to="{ name: 'mycards' }" class="nav-link">My KOTAs</router-link>
+          </li>
+        </ul>
+
+      </nav>
+    </header>
+
+    <main role="main" class="container main-container mt-5">
       <router-view></router-view>
     </main>
 
@@ -13,8 +28,8 @@
           </div>
           <div class="col-sm text-center">
             <small>
-              <router-link :to="{ name: 'home' }">Buy Cards</router-link> &bull;
-              <router-link :to="{ name: 'mycards' }">My Cards</router-link>
+              <!--<router-link :to="{ name: 'home' }">Buy Cards</router-link> &bull;-->
+              <router-link :to="{ name: 'mycards' }">My KOTAs</router-link>
             </small>
           </div>
           <div class="col-sm text-right">
@@ -82,7 +97,8 @@
   $body-bg: #f2f5fb;
   $body-color: #545454;
   $primary: #545454;
-  $secondary: #132cc4;
+  $secondary: #f2f5fb;
+  $black: #000000;
 
   $font-family-base: 'Poppins', 'Avenir', Helvetica, Arial, sans-serif;
 
@@ -100,12 +116,17 @@
     margin-top: 10px;
     padding-top: 50px;
     padding-bottom: 50px;
-    background-image: url("../static/kodo_pattern.jpeg");
+    background-color: $body-color;
+    /*background-image: url("../static/Stina_bg_test.png");*/
+    /*background-size: 100%;*/
   }
 
   .main-container {
-    background-color: $body-bg !important;
-    padding: 20px 40px 40px 40px;
+
+  }
+
+  nav {
+    background-color: $black;
   }
 
   .navbar-brand {
@@ -135,7 +156,7 @@
     width: 100%;
     min-height: 60px;
     line-height: 25px;
-    background-color: $primary;
+    background-color: $body-color;
   }
 
   body > .container {
