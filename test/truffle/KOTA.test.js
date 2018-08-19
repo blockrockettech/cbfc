@@ -31,8 +31,8 @@ contract.only('KOTA', function (accounts) {
 
   beforeEach(async function () {
     this.token = await KOTA.new({from: _owner});
-    await this.token.addBox(_boxOne, 'Box One', 'One Desc', 'abc', {from: _owner});
-    await this.token.addBox(_boxTwo, 'Box Two', 'Two Desc', 'xyz', {from: _owner});
+    await this.token.addBox(_boxOne, 'Box One', 'One Desc', 'abc', 1, 4, {from: _owner});
+    await this.token.addBox(_boxTwo, 'Box Two', 'Two Desc', 'xyz', 2, 2, {from: _owner});
   });
 
   describe('ensure boxes can be added', function () {
@@ -46,7 +46,7 @@ contract.only('KOTA', function (accounts) {
     });
 
     it('should revert if not owner', async function () {
-      await assertRevert(this.token.addBox(_boxOne, 'Box One', 'One Desc', 'abc', {from: _buyerOne}));
+      await assertRevert(this.token.addBox(_boxOne, 'Box One', 'One Desc', 'abc', 1, 1, {from: _buyerOne}));
     });
 
     it('should have fully described boxes', async function () {
@@ -56,6 +56,7 @@ contract.only('KOTA', function (accounts) {
       boxOne[1].should.be.equal('Box One');
       boxOne[2].should.be.equal('One Desc');
       boxOne[3].should.be.equal('abc');
+      //TODO cost and cards
 
       const boxTwo = await this.token.boxNumberToBox(_boxTwo);
 
@@ -63,6 +64,7 @@ contract.only('KOTA', function (accounts) {
       boxTwo[1].should.be.equal('Box Two');
       boxTwo[2].should.be.equal('Two Desc');
       boxTwo[3].should.be.equal('xyz');
+      //TODO cost and cards
     });
   });
 
@@ -108,13 +110,14 @@ contract.only('KOTA', function (accounts) {
     let _costOfPack;
     let _cardsPerPack;
     beforeEach(async function () {
-      _costOfPack = await this.token.costOfPack();
-      _cardsPerPack = await this.token.cardsPerPack();
-
       await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberThree, 8, 'Three', 'Three', {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberFour, 8, 'Four', 'Four', {from: _owner}); // add card set
+
+      const _boxOneData = await this.token.boxNumberToBox(_boxOne);
+      _costOfPack = _boxOneData[4];
+      _cardsPerPack = _boxOneData[5];
     });
 
     it('should have 4 card sets in circulation', async function () {
@@ -157,12 +160,14 @@ contract.only('KOTA', function (accounts) {
     let _costOfPack;
     let _cardsPerPack;
     beforeEach(async function () {
-      _costOfPack = await this.token.costOfPack();
-      _cardsPerPack = await this.token.cardsPerPack();
 
       await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, 'One', 'One', {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 4, 'Two', 'Two', {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberThree, 4, 'Three', 'Three', {from: _owner}); // add card set
+
+      const _boxOneData = await this.token.boxNumberToBox(_boxOne);
+      _costOfPack = _boxOneData[4];
+      _cardsPerPack = _boxOneData[5];
     });
 
     it('should have 3 card sets in circulation ', async function () {
@@ -198,11 +203,12 @@ contract.only('KOTA', function (accounts) {
     let _cardsPerPack;
 
     beforeEach(async function () {
-      _costOfPack = await this.token.costOfPack();
-      _cardsPerPack = await this.token.cardsPerPack();
-
       await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', {from: _owner}); // add card set
+
+      const _boxOneData = await this.token.boxNumberToBox(_boxOne);
+      _costOfPack = _boxOneData[4];
+      _cardsPerPack = _boxOneData[5];
     });
 
     it('should allow owner to mint', async function () {

@@ -22,10 +22,6 @@ contract KOTA is ERC721Token, Ownable {
 
   string internal tokenBaseURI = "https://ipfs.infura.io/ipfs/";
 
-  // TODO move into box
-  uint256 public costOfPack = 0.01 ether;
-  uint8 constant public cardsPerPack = 4;
-
   uint256 public totalCardsInCirculation = 0;
   uint256 public totalCardsInCirculationSold = 0;
   uint256 public totalWei = 0;
@@ -36,12 +32,13 @@ contract KOTA is ERC721Token, Ownable {
 
   mapping(address => uint) public credits;
 
-  // TODO add cost and cards per pack
   struct Box {
     uint256 boxNumber;
     string title;
     string description;
     string boxURI;
+    uint256 costOfPack;
+    uint8 cardsPerPack;
   }
 
   // TODO add artist share and artist address
@@ -72,8 +69,8 @@ contract KOTA is ERC721Token, Ownable {
     buyPack(defaultBoxNumber);
   }
 
-  function addBox(uint256 _boxNumber, string _title, string _description, string _boxUri) public onlyOwner {
-    Box memory _newBox = Box(_boxNumber, _title, _description, _boxUri);
+  function addBox(uint256 _boxNumber, string _title, string _description, string _boxUri,  uint256 _costOfPack, uint8 _cardsPerPack) public onlyOwner {
+    Box memory _newBox = Box(_boxNumber, _title, _description, _boxUri, _costOfPack, _cardsPerPack);
 
     boxNumberToBox[_boxNumber] = _newBox;
     boxNumbers.push(_boxNumber);
@@ -123,17 +120,17 @@ contract KOTA is ERC721Token, Ownable {
    * @dev Buys a pack of cards
    */
   function buyPack(uint256 _boxNumber) public payable {
-    require(msg.value >= costOfPack);
     require(cardSetsInCirculation(_boxNumber) > 0);
+    require(msg.value >= boxNumberToBox[_boxNumber].costOfPack);
 
     _randomPack(_boxNumber);
 
     // reconcile payments
-    owner.transfer(costOfPack);
-    totalWei = totalWei.add(costOfPack);
+    owner.transfer(boxNumberToBox[_boxNumber].costOfPack);
+    totalWei = totalWei.add(boxNumberToBox[_boxNumber].costOfPack);
 
     // give back the change - if any
-    msg.sender.transfer(msg.value - costOfPack);
+    msg.sender.transfer(msg.value - boxNumberToBox[_boxNumber].costOfPack);
     emit CardPackBought(msg.sender, uint32(now));
   }
 
@@ -195,15 +192,6 @@ contract KOTA is ERC721Token, Ownable {
   }
 
   /**
-   * @dev Utility function changing the cost of the pack
-   * @dev Reverts if not called by owner
-   * @param _costOfPack cost in wei
-   */
-  function setCostOfPack(uint256 _costOfPack) external onlyOwner {
-    costOfPack = _costOfPack;
-  }
-
-  /**
    * @dev Utility function to credit address with packs they can redeem
    * @dev Reverts if not called by owner
    * @param _recipient receiver of credit
@@ -234,7 +222,7 @@ contract KOTA is ERC721Token, Ownable {
     // thanks CryptoStrikers!
     require(msg.sender == tx.origin);
 
-    for (uint i = 0; i < cardsPerPack; i++) {
+    for (uint i = 0; i < boxNumberToBox[_boxNumber].cardsPerPack; i++) {
       uint _index = _randomCardSetIndex(_boxNumber, i + 1);
       CardSet storage pickedSet = boxNumberToCardSetCirculation[_boxNumber][_index];
 
@@ -247,8 +235,8 @@ contract KOTA is ERC721Token, Ownable {
       }
     }
 
-    boxNumberToCardsInCirculationSold[_boxNumber] = boxNumberToCardsInCirculationSold[_boxNumber].add(cardsPerPack);
-    totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
+    boxNumberToCardsInCirculationSold[_boxNumber] = boxNumberToCardsInCirculationSold[_boxNumber].add(boxNumberToBox[_boxNumber].cardsPerPack);
+    totalCardsInCirculationSold = totalCardsInCirculationSold.add(boxNumberToBox[_boxNumber].cardsPerPack);
   }
 
   function _randomCardSetIndex(uint256 _boxNumber, uint _index) internal returns (uint) {
