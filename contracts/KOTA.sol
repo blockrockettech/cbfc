@@ -9,8 +9,8 @@ import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
 /**
 * @title KOTA aka KnownOrigin Trading Assets
 *
-* max 999 cards per box
-* max 999 minted per card
+* max 999 cards per box - if box interval is 1000000
+* max 999 minted per card - if card set interval is 1000
 */
 contract KOTA is ERC721Token, Ownable {
   using SafeMath for uint256;

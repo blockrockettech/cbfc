@@ -56,7 +56,9 @@ contract.only('KOTA', function (accounts) {
       boxOne[1].should.be.equal('Box One');
       boxOne[2].should.be.equal('One Desc');
       boxOne[3].should.be.equal('abc');
-      //TODO cost and cards
+      boxOne[4].should.be.bignumber.equal(1);
+      boxOne[5].should.be.bignumber.equal(4);
+
 
       const boxTwo = await this.token.boxNumberToBox(_boxTwo);
 
@@ -64,7 +66,9 @@ contract.only('KOTA', function (accounts) {
       boxTwo[1].should.be.equal('Box Two');
       boxTwo[2].should.be.equal('Two Desc');
       boxTwo[3].should.be.equal('xyz');
-      //TODO cost and cards
+      boxTwo[4].should.be.bignumber.equal(2);
+      boxTwo[5].should.be.bignumber.equal(2);
+
     });
   });
 
