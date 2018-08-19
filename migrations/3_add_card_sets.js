@@ -12,6 +12,7 @@ module.exports = async function (deployer, network, accounts) {
   const deployedKOTA = await KOTA.deployed();
 
   let _owner = accounts[0];
+  let _artist = accounts[1];
 
   if (network === 'ropsten' || network === 'rinkeby') {
     _owner = new HDWalletProvider(mnemonic, `https://${network}.infura.io/${infuraApikey}`, 0).getAddress();
@@ -48,12 +49,12 @@ module.exports = async function (deployer, network, accounts) {
   let index = 0;
   _.forOwn(kodaIpfsCacheBox0, async (v, k, i) => {
     ++index;
-    await deployedKOTA.addCardSet(1000000, 1000 * index, 100, k, v);
+    await deployedKOTA.addCardSet(1000000, 1000 * index, 100, k, v, _artist, 76);
   });
 
   index = 0;
   _.forOwn(kodaIpfsCacheBox1, async (v, k, i) => {
     ++index;
-    await deployedKOTA.addCardSet(2000000, 1000 * index, 100, k, v);
+    await deployedKOTA.addCardSet(2000000, 1000 * index, 100, k, v, _artist, 76);
   });
 };

@@ -16,6 +16,7 @@ contract.only('KOTA', function (accounts) {
 
   const _buyerOne = accounts[1];
   const _buyerTwo = accounts[2];
+  const _artist = accounts[3];
 
   const _boxOne = 1000000;
   const _boxTwo = 2000000;
@@ -75,7 +76,7 @@ contract.only('KOTA', function (accounts) {
   describe('ensure card sets can be added', function () {
 
     beforeEach(async function () {
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', _artist, 76, {from: _owner}); // add card set
     });
 
     it('should have 2 card sets in circulation', async function () {
@@ -98,6 +99,8 @@ contract.only('KOTA', function (accounts) {
       cardSetOne[3].toNumber().should.be.equal(0);
       bytes32ToString(cardSetOne[4]).should.be.equal('One\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000');
       cardSetOne[5].should.be.equal('One');
+      cardSetOne[6].should.be.equal(_artist);
+      cardSetOne[7].should.be.bignumber.equal(76);
     });
 
     it('should have correct circulation and sold totals for card sets', async function () {
@@ -114,10 +117,10 @@ contract.only('KOTA', function (accounts) {
     let _costOfPack;
     let _cardsPerPack;
     beforeEach(async function () {
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
-      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', {from: _owner}); // add card set
-      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 8, 'Three', 'Three', {from: _owner}); // add card set
-      await this.token.addCardSet(_boxOne, _cardSetNumberFour, 8, 'Four', 'Four', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 8, 'Three', 'Three', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberFour, 8, 'Four', 'Four', _artist, 76, {from: _owner}); // add card set
 
       const _boxOneData = await this.token.boxNumberToBox(_boxOne);
       _costOfPack = _boxOneData[4];
@@ -165,9 +168,9 @@ contract.only('KOTA', function (accounts) {
     let _cardsPerPack;
     beforeEach(async function () {
 
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, 'One', 'One', {from: _owner}); // add card set
-      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 4, 'Two', 'Two', {from: _owner}); // add card set
-      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 4, 'Three', 'Three', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 4, 'Two', 'Two', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 4, 'Three', 'Three', _artist, 76, {from: _owner}); // add card set
 
       const _boxOneData = await this.token.boxNumberToBox(_boxOne);
       _costOfPack = _boxOneData[4];
@@ -207,8 +210,8 @@ contract.only('KOTA', function (accounts) {
     let _cardsPerPack;
 
     beforeEach(async function () {
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', {from: _owner}); // add card set
-      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', _artist, 76, {from: _owner}); // add card set
 
       const _boxOneData = await this.token.boxNumberToBox(_boxOne);
       _costOfPack = _boxOneData[4];

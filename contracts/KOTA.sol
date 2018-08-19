@@ -41,7 +41,6 @@ contract KOTA is ERC721Token, Ownable {
     uint8 cardsPerPack;
   }
 
-  // TODO add artist share and artist address
   struct CardSet {
     uint256 boxNumber;
     uint256 cardNumber;
@@ -49,6 +48,8 @@ contract KOTA is ERC721Token, Ownable {
     uint256 minted;
     bytes32 cardName;
     string cardURI;
+    address artist;
+    uint8 artistShare;
   }
   mapping(uint256 => Box) public boxNumberToBox;
 
@@ -76,14 +77,22 @@ contract KOTA is ERC721Token, Ownable {
     boxNumbers.push(_boxNumber);
   }
 
-  function addCardSet(uint256 _boxNumber, uint256 _cardNumber, uint256 _totalSupply, bytes32 _cardName, string _cardUri) public onlyOwner {
+  function addCardSet(
+    uint256 _boxNumber,
+    uint256 _cardNumber,
+    uint256 _totalSupply,
+    bytes32 _cardName,
+    string _cardUri,
+    address _artist,
+    uint8 _artistShare
+  ) public onlyOwner {
     require(boxNumberToBox[_boxNumber].boxNumber > 0, "Box should exist");
 
     uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
     require(boxCardNumberToCardSet[_boxCardNumber].cardNumber == 0, "Card Set should not exist");
 
     // add new card set by boxCardNumber
-    CardSet memory _newCardSet = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri);
+    CardSet memory _newCardSet = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri, _artist, _artistShare);
     boxCardNumberToCardSet[_boxCardNumber] = _newCardSet;
 
     // add to box circulation
@@ -148,6 +157,7 @@ contract KOTA is ERC721Token, Ownable {
     emit CardPackRedeemed(msg.sender, uint32(now));
   }
 
+  // FIXME think about this...
   function burn(uint256 _tokenId) public {
     super._burn(msg.sender, _tokenId);
   }
