@@ -42,8 +42,8 @@ module.exports = async function (deployer, network, accounts) {
     'coin_journal_coin_zuki': 'QmQvcmPP83hnvzeRnuB1oJm9E1iuoTR4VXZpVeDRj66tmK',
   };
 
-  await deployedKOTA.addBox(1000000, 'Stina Jones', 'Specimens', 'QmT9iCuqkB9i9U2KXm6YhH5bn6jY7YJwWJHMu1EAsTtB4o', 1, 4);
-  await deployedKOTA.addBox(2000000, 'KO', 'KO Kards', 'Qmbdf5KBGAkNeGthdZXdqzKM6J2FLvnqv1PRh74ehxo76L', 2, 2);
+  await deployedKOTA.addBox(1000000, 'Stina Jones', 'Specimens', 'QmT9iCuqkB9i9U2KXm6YhH5bn6jY7YJwWJHMu1EAsTtB4o', 10000000000000000, 4);
+  await deployedKOTA.addBox(2000000, 'KO', 'KO Kards', 'Qmbdf5KBGAkNeGthdZXdqzKM6J2FLvnqv1PRh74ehxo76L', 20000000000000000, 2);
 
   let index = 0;
   _.forOwn(kodaIpfsCacheBox0, async (v, k, i) => {
