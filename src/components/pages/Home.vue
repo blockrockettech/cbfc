@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="row" v-for="boxNumber in boxNumbers">
+    <div class="row" v-for="boxNumber in boxNumbers" v-if="boxes">
       <div class="col-sm-12 kota-box mb-5" v-bind:class="{'stina': boxNumber.toString(10) === '1000000', 'kota': boxNumber.toString(10) !== '1000000'}">
         <!--<span class="badge badge-light">{{ box.toString(10) }}</span>-->
         <img v-if="boxNumber.toString(10) === '1000000'" src="../../../static/StinaJones1_Profile@x2.png" style="max-width: 100px; margin: 10px"/>
@@ -12,9 +12,9 @@
         <div class="row text-center pt-4 pb-4">
           <div class="col">
             <a class="btn btn-warning btn-xlg" href="#" role="button" @click="BUY_PACK(boxNumber)">Buy Pack</a>
-            <ul class="mt-2" v-if="cardsPerPack && costOfPack">
-              <li><span class="kota-box-extra-text pl-3 pr-3">Cost per Pack: {{ costOfPack | toEth }} ETH</span></li>
-              <li><span class="kota-box-extra-text pl-3 pr-3">Cards per Pack: {{ cardsPerPack.toString(10) }}</span></li>
+            <ul class="mt-2">
+              <li><span class="kota-box-extra-text pl-3 pr-3">Cost per Pack: {{ boxes[boxNumber.toNumber()][4] | toEth }} ETH</span></li>
+              <li><span class="kota-box-extra-text pl-3 pr-3">Cards per Pack: {{ boxes[boxNumber.toNumber()][5].toString(10) }}</span></li>
             </ul>
           </div>
           <div class="col" v-if="accountCredits.toNumber() > 0">
@@ -39,10 +39,6 @@
     },
     computed: {
       ...mapState([
-        'costOfPack',
-        'cardsPerPack',
-        'totalCardsInCirculation',
-        'totalCardsInCirculationSold',
         'accountCredits',
         'boxNumbers',
         'boxes'

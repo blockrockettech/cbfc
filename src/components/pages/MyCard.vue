@@ -12,29 +12,18 @@
               </h5>
             </div>
           </div>
-          <div class="row">
-            <div class="col">
-                BOX {{ boxNumberFromTokenId(tokenId) }}
-            </div>
-            <div class="col">
-                CARD {{ cardSetFromTokenId(tokenId) }}
-            </div>
-            <div class="col">
-                SERIAL #{{ boxCardSetSerialNumberFromTokenId(tokenId) }}
-            </div>
-          </div>
-          <div class="row">
-            <div class="col">
-              <span class="">XX Minted</span>
-            </div>
-            <div class="col">
-              <span class="">XX Left</span>
-            </div>
-            <div class="col">
-              <span class="">RARE</span>
-            </div>
-          </div>
         </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            Box <span class="">#{{ simpleBoxNumberFromTokenId(tokenId) }}</span>
+          </li>
+          <li class="list-group-item">
+            Card <span class="">#{{ simpleBoxCardSetNumberFromTokenId(tokenId) }}</span>
+          </li>
+          <li class="list-group-item">
+            Serial <span class="">#{{ boxCardSetSerialNumberFromTokenId(tokenId) }}</span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -63,9 +52,12 @@
         'boxNumberFromTokenId',
         'boxCardSetNumberFromTokenId',
         'boxCardSetFromTokenId',
+        'boxNumberSerialNumberFromTokenId',
         'boxCardSetSerialNumberFromTokenId',
         'cardSetFromTokenId',
-        'lookupBoxCardSet'
+        'lookupBoxCardSet',
+        'simpleBoxNumberFromTokenId',
+        'simpleBoxCardSetNumberFromTokenId'
       ])
     },
     methods: {

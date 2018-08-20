@@ -41,8 +41,6 @@ const store = new Vuex.Store({
     defaultBoxNumber: 1000000,
     boxNumbers: null,
     totalSupply: null,
-    costOfPack: null,
-    cardsPerPack: null,
     totalCardsInCirculation: null,
     totalCardsInCirculationSold: null,
     cardSetsInCirculation: null,
@@ -59,7 +57,7 @@ const store = new Vuex.Store({
       return parseInt((tokenId.toString(10) / cardSetIncrements));
     },
     boxCardSetFromTokenId: (state, getters) => (tokenId) => {
-      return parseInt(getters.boxCardSetNumberFromTokenId(tokenId) * cardSetIncrements);
+      return parseInt(getters.boxCardSetNumberFromTokenId(tokenId)) * cardSetIncrements;
     },
     cardSetFromTokenId: (state, getters) => (tokenId) => {
       return getters.boxCardSetFromTokenId(tokenId) - getters.boxNumberFromTokenId(tokenId);
@@ -69,7 +67,13 @@ const store = new Vuex.Store({
     },
     lookupBoxCardSet: (state, getters) => (tokenId) => {
       return state.cardSets[getters.boxCardSetFromTokenId(tokenId)];
-    }
+    },
+    simpleBoxNumberFromTokenId: (state, getters) => (tokenId) => {
+      return parseInt(tokenId.toString(10) / boxIncrements);
+    },
+    simpleBoxCardSetNumberFromTokenId: (state, getters) => (tokenId) => {
+      return getters.cardSetFromTokenId(tokenId) / cardSetIncrements;
+    },
   },
   mutations: {
     [mutations.SET_ALL_ASSETS] (state, assets) {
@@ -96,8 +100,6 @@ const store = new Vuex.Store({
       totalSupply,
       owner,
       contractAddress,
-      costOfPack,
-      cardsPerPack,
       totalCardsInCirculation,
       totalCardsInCirculationSold,
       accountCredits,
@@ -108,8 +110,6 @@ const store = new Vuex.Store({
       state.contractName = name;
       state.owner = owner;
       state.contractAddress = contractAddress;
-      state.costOfPack = costOfPack;
-      state.cardsPerPack = cardsPerPack;
       state.totalCardsInCirculation = totalCardsInCirculation;
       state.totalCardsInCirculationSold = totalCardsInCirculationSold;
       state.accountCredits = accountCredits;
@@ -238,8 +238,6 @@ const store = new Vuex.Store({
             contract.totalSupply(),
             contract.owner(),
             contract.address,
-            contract.costOfPack(),
-            contract.cardsPerPack(),
             contract.totalCardsInCirculation(),
             contract.totalCardsInCirculationSold(),
             contract.credits(state.account),
@@ -252,16 +250,14 @@ const store = new Vuex.Store({
                 totalSupply: results[2].toString(),
                 owner: results[3],
                 contractAddress: results[4],
-                costOfPack: results[5],
-                cardsPerPack: results[6],
-                totalCardsInCirculation: results[7],
-                totalCardsInCirculationSold: results[8],
-                accountCredits: results[9],
-                boxNumbers: results[10]
+                totalCardsInCirculation: results[5],
+                totalCardsInCirculationSold: results[6],
+                accountCredits: results[7],
+                boxNumbers: results[8]
               });
 
               // load box details
-              return Promise.all(results[10].map((boxNumber) => contract.boxNumberToBox(boxNumber)));
+              return Promise.all(state.boxNumbers.map((boxNumber) => contract.boxNumberToBox(boxNumber)));
             })
             .then((results) => {
 
@@ -285,7 +281,7 @@ const store = new Vuex.Store({
       kota.deployed()
         .then((contract) => {
           console.log(`buying pack...`);
-          let tx = contract.buyPack(boxNumber, {value: state.costOfPack, from: state.account});
+          let tx = contract.buyPack(boxNumber, {value: state.boxes[boxNumber][4], from: state.account});
 
           console.log(tx);
 
