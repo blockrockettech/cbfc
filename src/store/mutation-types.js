@@ -11,6 +11,7 @@ export const SET_WEB3 = 'SET_WEB3';
 ///////////////////
 export const SET_ACCOUNT = 'SET_ACCOUNT';
 export const SET_ASSETS_PURCHASED_FROM_ACCOUNT = 'SET_ASSETS_PURCHASED_FROM_ACCOUNT';
+export const SET_CREDITS_FOR_ACCOUNT = 'SET_CREDITS_FOR_ACCOUNT';
 export const SET_CARD_SETS = 'SET_CARD_SETS';
 export const SET_BOXES = 'SET_BOXES';
 

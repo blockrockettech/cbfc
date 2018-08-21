@@ -60,7 +60,6 @@ contract.only('KOTA', function (accounts) {
       boxOne[4].should.be.bignumber.equal(1);
       boxOne[5].should.be.bignumber.equal(4);
 
-
       const boxTwo = await this.token.boxNumberToBox(_boxTwo);
 
       boxTwo[0].toNumber().should.be.equal(_boxTwo);
@@ -151,7 +150,7 @@ contract.only('KOTA', function (accounts) {
       console.log(`circulation ${postCardSetTotal}`);
 
       const cards = await this.token.tokensOf(_buyerOne);
-      console.log(`cards ${cards}`);
+      // console.log(`cards ${cards}`);
     });
 
     // it('should return random card set index', async function () {
@@ -226,5 +225,51 @@ contract.only('KOTA', function (accounts) {
       tokens[0].should.be.bignumber.equal(_boxOne + _cardSetNumberOne + 1);
     });
 
+  });
+
+  describe('credits', function () {
+
+    beforeEach(async function () {
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+    });
+
+    it('should have no credits initially', async function () {
+      const credits = await this.token.creditsOf(_boxOne, _owner);
+      credits.should.be.bignumber.equal(0);
+    });
+
+    it('should award a credit and be available in credit balance', async function () {
+      let credits = await this.token.creditsOf(_boxOne, _owner);
+      credits.should.be.bignumber.equal(0);
+
+      await this.token.addCredit(_boxOne, _buyerOne, {from: _owner});
+
+      credits = await this.token.creditsOf(_boxOne, _buyerOne);
+      credits.should.be.bignumber.equal(1);
+    });
+
+    it('should only allow owner to add credits', async function () {
+      await this.token.addCredit(_boxOne, _artist, {from: _owner});
+
+      await assertRevert(this.token.addCredit(_boxOne, _artist, {from: _artist}));
+    });
+
+    it('should decrement if redeemed', async function () {
+      await this.token.addCredit(_boxOne, _buyerOne, {from: _owner});
+
+      let credits = await this.token.creditsOf(_boxOne, _buyerOne);
+      credits.should.be.bignumber.equal(1);
+
+      await this.token.redeemPack(_boxOne, {from: _buyerOne});
+      credits = await this.token.creditsOf(_boxOne, _buyerOne);
+      credits.should.be.bignumber.equal(0);
+    });
+
+    it('should not redeem if not credit', async function () {
+      let credits = await this.token.creditsOf(_boxOne, _buyerOne);
+      credits.should.be.bignumber.equal(0);
+
+      await assertRevert(this.token.redeemPack(_boxOne, {from: _buyerOne}));
+    });
   });
 });

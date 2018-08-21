@@ -9,7 +9,7 @@
         <ul class="navbar-nav mr-auto"></ul>
         <ul class="navbar-nav">
           <li class="nav-item pr-5">
-            <router-link :to="{ name: 'mycards' }" class="nav-link">My KOTAs&nbsp;&nbsp;<span class="badge badge-secondary">{{ assetsPurchasedByAccount.length }}</span></router-link>
+            <router-link :to="{ name: 'mycards' }" class="nav-link">My KOTAs&nbsp;&nbsp;<span class="badge badge-secondary" v-if="assetsPurchasedByAccount">{{ assetsPurchasedByAccount.length }}</span></router-link>
           </li>
         </ul>
 

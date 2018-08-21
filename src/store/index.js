@@ -88,11 +88,16 @@ const store = new Vuex.Store({
     [mutations.SET_ASSETS_PURCHASED_FROM_ACCOUNT] (state, tokens) {
       Vue.set(state, 'assetsPurchasedByAccount', tokens);
     },
+    [mutations.SET_CREDITS_FOR_ACCOUNT] (state, credits) {
+      Vue.set(state, 'accountCredits', credits);
+    },
     [mutations.SET_CARD_SETS] (state, cardSets) {
       Vue.set(state, 'cardSets', cardSets);
     },
     [mutations.SET_BOXES] (state, boxes) {
       Vue.set(state, 'boxes', boxes);
+
+      store.dispatch(actions.GET_CREDITS_FOR_ACCOUNT);
     },
     [mutations.SET_CONTRACT_DETAILS] (state, {
       name,
@@ -102,7 +107,6 @@ const store = new Vuex.Store({
       contractAddress,
       totalCardsInCirculation,
       totalCardsInCirculationSold,
-      accountCredits,
       boxNumbers
     }) {
       state.totalSupply = totalSupply;
@@ -112,7 +116,6 @@ const store = new Vuex.Store({
       state.contractAddress = contractAddress;
       state.totalCardsInCirculation = totalCardsInCirculation;
       state.totalCardsInCirculationSold = totalCardsInCirculationSold;
-      state.accountCredits = accountCredits;
       state.boxNumbers = boxNumbers;
     },
     [mutations.SET_ACCOUNT] (state, {account, accountBalance}) {
@@ -240,7 +243,6 @@ const store = new Vuex.Store({
             contract.address,
             contract.totalCardsInCirculation(),
             contract.totalCardsInCirculationSold(),
-            contract.credits(state.account),
             contract.allBoxNumbers(),
           ])
             .then((results) => {
@@ -252,8 +254,7 @@ const store = new Vuex.Store({
                 contractAddress: results[4],
                 totalCardsInCirculation: results[5],
                 totalCardsInCirculationSold: results[6],
-                accountCredits: results[7],
-                boxNumbers: results[8]
+                boxNumbers: results[7]
               });
 
               // load box details
@@ -271,6 +272,29 @@ const store = new Vuex.Store({
               );
 
               commit(mutations.SET_BOXES, boxesObj);
+            })
+            .catch((error) => console.log('Something went bang!', error));
+        }).catch((error) => console.log('Something went bang!', error));
+    },
+    [actions.GET_CREDITS_FOR_ACCOUNT] ({commit, dispatch, state}) {
+
+      kota.deployed()
+        .then((contract) => {
+
+          const creditPromises = _.map(state.boxes, (box) => contract.creditsOf(box[0], state.account));
+          Promise.all(creditPromises)
+            .then((results) => {
+              let i = 0;
+              const creditsObj = _.reduce(
+                state.boxes,
+                (obj, val, index) => {
+                  obj[val[0].toNumber()] = results[i].toNumber();
+                  i++;
+                  return obj;
+                },
+                {}
+              );
+              commit(mutations.SET_CREDITS_FOR_ACCOUNT, creditsObj);
             })
             .catch((error) => console.log('Something went bang!', error));
         }).catch((error) => console.log('Something went bang!', error));

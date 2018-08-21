@@ -30,6 +30,6 @@ module.exports = async function (deployer, network, accounts) {
 
   console.log(`_owner = ${_owner}`);
 
-  await deployedKOTA.addCredit(_account1, {from: _owner});
-  await deployedKOTA.addCredit(_account2, {from: _owner});
+  await deployedKOTA.addCredit(1000000, _account1, {from: _owner});
+  await deployedKOTA.addCredit(2000000, _account2, {from: _owner});
 };

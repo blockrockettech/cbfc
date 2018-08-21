@@ -30,7 +30,7 @@ contract KOTA is ERC721Token, Ownable {
 
   uint256 internal randNonce = 0;
 
-  mapping(address => uint) public credits;
+  mapping(uint256 => mapping(address => uint)) internal boxNumberToAccountCredits;
 
   struct Box {
     uint256 boxNumber;
@@ -147,10 +147,10 @@ contract KOTA is ERC721Token, Ownable {
    * @dev Redeem a pack of cards (via a credit)
    */
   function redeemPack(uint256 _boxNumber) public {
-    require(credits[msg.sender] > 0);
+    require(boxNumberToAccountCredits[_boxNumber][msg.sender] > 0);
 
     // remove credit
-    credits[msg.sender] = credits[msg.sender].sub(1);
+    boxNumberToAccountCredits[_boxNumber][msg.sender] = boxNumberToAccountCredits[_boxNumber][msg.sender].sub(1);
 
     _randomPack(_boxNumber);
 
@@ -204,10 +204,20 @@ contract KOTA is ERC721Token, Ownable {
   /**
    * @dev Utility function to credit address with packs they can redeem
    * @dev Reverts if not called by owner
+   * @param _boxNumber number of the box to credit
    * @param _recipient receiver of credit
    */
-  function addCredit(address _recipient) external onlyOwner {
-    credits[_recipient] = credits[_recipient].add(1);
+  function addCredit(uint256 _boxNumber, address _recipient) external onlyOwner {
+    boxNumberToAccountCredits[_boxNumber][_recipient] = boxNumberToAccountCredits[_boxNumber][_recipient].add(1);
+  }
+
+  /**
+   * @dev Credits for account for box
+   * @param _boxNumber number of the box to credit
+   * @param _recipient receiver of credit
+   */
+  function creditsOf(uint256 _boxNumber, address _recipient) public view returns (uint256 _credits) {
+    return boxNumberToAccountCredits[_boxNumber][_recipient];
   }
 
   /**
