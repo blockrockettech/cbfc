@@ -15,7 +15,7 @@
             <li><span class="small">Cards per Pack:</span> {{ cardsPerPack.toString(10) }}</li>
           </ul>
         </div>
-        <div class="col" v-if="accountCredits && accountCredits.toNumber() > 0">
+        <div class="col" v-if="hasAccountCredits(boxNumber)">
           <a class="btn btn-secondary btn-xlg" href="#" role="button" @click="REDEEM_PACK(boxNumber)">Redeem Pack</a>
         </div>
       </div>
@@ -50,12 +50,14 @@
       ]),
       goHome () {
         this.$router.push({name: 'home'});
+      },
+      hasAccountCredits(boxNumber) {
+        return this.accountCredits && this.accountCredits[boxNumber] && this.accountCredits[boxNumber] > 0;
       }
     },
     props: {
       boxNumber: {
         required: true,
-        type: Number,
         default: 1000000
       }
     }

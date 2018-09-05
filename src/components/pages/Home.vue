@@ -17,7 +17,7 @@
               <li><span class="kota-box-extra-text pl-3 pr-3">Cards per Pack: {{ boxes[boxNumber.toNumber()][5].toString(10) }}</span></li>
             </ul>
           </div>
-          <div class="col" v-if="accountCredits && accountCredits[boxNumber.toNumber()] > 0">
+          <div class="col" v-if="hasAccountCredits(boxNumber)">
             <a class="btn btn-warning btn-xlg" href="#" role="button" @click="REDEEM_PACK(boxNumber)">Redeem Pack</a>
           </div>
         </div>
@@ -49,7 +49,10 @@
       ...mapActions([
         actions.BUY_PACK,
         actions.REDEEM_PACK
-      ])
+      ]),
+      hasAccountCredits(boxNumber) {
+        return this.accountCredits && this.accountCredits[boxNumber] && this.accountCredits[boxNumber] > 0;
+      }
     }
   };
 </script>

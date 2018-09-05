@@ -48,4 +48,12 @@
     border-radius: 0;
     border: 0;
   }
+
+  h1 .badge {
+    position: relative;
+    top: -25px;
+    right: 5px;
+    opacity: 0.75;
+    font-size: 1.5rem;
+  }
 </style>

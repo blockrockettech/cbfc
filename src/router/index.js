@@ -24,7 +24,7 @@ export default new Router({
       component: Home
     },
     {
-      path: '/:boxNumber',
+      path: '/box/:boxNumber',
       name: 'box',
       component: Box,
       props: true

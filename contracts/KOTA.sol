@@ -257,6 +257,15 @@ contract KOTA is ERC721Token, RBAC, Pausable {
     tokenBaseURI = _newBaseURI;
   }
 
+  /**
+   * @dev Allows management to update the default box number
+   * @dev Reverts if not called by owner
+   * @param _defaultBoxNumber new default box number
+   */
+  function setDefaultBoxNumber(uint256 _defaultBoxNumber) external onlyOwner {
+    defaultBoxNumber = _defaultBoxNumber;
+  }
+
   function _randomPack(uint256 _boxNumber) internal {
     // thanks CryptoStrikers!
     require(msg.sender == tx.origin);

@@ -28,7 +28,7 @@
           </div>
           <div class="col-sm text-center">
             <small>
-              <!--<router-link :to="{ name: 'home' }">Buy Cards</router-link> &bull;-->
+              <router-link :to="{ name: 'home' }">Home</router-link> &bull;
               <router-link :to="{ name: 'mycards' }">My KOTAs</router-link>
             </small>
           </div>
@@ -131,6 +131,14 @@
 
   .navbar-brand {
     font-size: 1.5rem;
+  }
+
+  .navbar-dark .badge {
+    position: relative;
+    top: -10px;
+    right: 0px;
+    opacity: 0.75;
+    font-size: 0.65rem;
   }
 
   /* mobile only */
