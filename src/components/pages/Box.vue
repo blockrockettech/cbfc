@@ -1,12 +1,12 @@
 <template>
   <div class="row bg-stina">
-    <div class="col-sm-12 kota-box mb-5">
+    <div class="col-sm-12 kota-box mb-5" v-if="boxes && boxNumber">
       <!--<span class="badge badge-light">{{ box.toString(10) }}</span>-->
       <img v-if="boxNumber === '1000000'" src="../../../static/StinaJones1_Profile@x2.png" style="max-width: 100px; margin: 10px"/>
       <h1>
-        {{ boxes[boxNumber][1] }}
+        {{ boxes[boxNumber] }}
       </h1>
-      <h2>{{ boxes[boxNumber][2] }}</h2>
+      <h2>{{ boxes[boxNumber] }}</h2>
       <div class="row text-center pt-5">
         <div class="col">
           <a class="btn btn-secondary btn-xlg" href="#" role="button" @click="BUY_PACK(boxNumber)">Buy Pack</a>
@@ -15,7 +15,7 @@
             <li><span class="small">Cards per Pack:</span> {{ cardsPerPack.toString(10) }}</li>
           </ul>
         </div>
-        <div class="col" v-if="accountCredits.toNumber() > 0">
+        <div class="col" v-if="accountCredits && accountCredits.toNumber() > 0">
           <a class="btn btn-secondary btn-xlg" href="#" role="button" @click="REDEEM_PACK(boxNumber)">Redeem Pack</a>
         </div>
       </div>

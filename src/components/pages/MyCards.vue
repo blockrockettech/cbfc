@@ -4,12 +4,12 @@
     <pre class="text-muted">{{ account }}</pre>
     <div class="card-deck ml-5 mr-5">
       <div class="col-auto mx-auto" v-for="tokenId in assetsPurchasedByAccount">
-        <div class="card shadow-sm mb-3">
-          <router-link :to="{ name: 'mycard', params: { tokenId: tokenId} }">
-            <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${lookupBoxCardSet(tokenId)[5]}/image`" :alt="web3.utils.toAscii(lookupBoxCardSet(tokenId)[4])">
-          </router-link>
-          <div class="card-body"></div>
-        </div>
+        <!--<pre>{{ lookupBoxCardSet(tokenId)}}</pre>-->
+        <router-link :to="{ name: 'mycard', params: { tokenId: tokenId} }">
+          <div class="card shadow-sm">
+            <img class="card-img-top" :src="`${lookupBoxCardSet(tokenId)[8].image}`" :alt="web3.utils.toAscii(lookupBoxCardSet(tokenId)[4])">
+          </div>
+        </router-link>
       </div>
     </div>
   </div>
@@ -41,11 +41,11 @@
 
 <style scoped lang="scss">
   .card-img-top {
-    /*height: 14rem;*/
   }
 
   .card {
     width: 10rem;
-    height: 15rem;
+    border-radius: 0;
+    border: 0;
   }
 </style>

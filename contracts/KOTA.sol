@@ -5,6 +5,8 @@ import "./Strings.sol";
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
+import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import 'openzeppelin-solidity/contracts/access/rbac/RBAC.sol';
 
 /**
 * @title KOTA aka KnownOrigin Trading Assets
@@ -12,7 +14,7 @@ import 'openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
 * max 999 cards per box - if box interval is 1000000
 * max 999 minted per card - if card set interval is 1000
 */
-contract KOTA is ERC721Token, Ownable {
+contract KOTA is ERC721Token, RBAC, Pausable {
   using SafeMath for uint256;
 
   event CardMinted(address indexed _owner, uint256 indexed _tokenId, bytes32 _name, uint32 _mintTime);
@@ -63,14 +65,27 @@ contract KOTA is ERC721Token, Ownable {
 
   uint256[] internal boxNumbers;
 
-  constructor() public ERC721Token("KOTA", "KOTA") {}
+  string constant ROLE_CREATOR = "ROLE_CREATOR";
+  string constant ROLE_MINTER = "ROLE_MINTER";
+
+  constructor() public ERC721Token("KOTA", "KOTA") {
+    addRole(msg.sender, ROLE_CREATOR);
+    addRole(msg.sender, ROLE_MINTER);
+  }
 
   // can buy direct from contract if you send enough ether
   function() public payable {
     buyPack(defaultBoxNumber);
   }
 
-  function addBox(uint256 _boxNumber, string _title, string _description, string _boxUri,  uint256 _costOfPack, uint8 _cardsPerPack) public onlyOwner {
+  function addBox(
+    uint256 _boxNumber,
+    string _title,
+    string _description,
+    string _boxUri,
+    uint256 _costOfPack,
+    uint8 _cardsPerPack
+  ) public onlyRole(ROLE_CREATOR) {
     Box memory _newBox = Box(_boxNumber, _title, _description, _boxUri, _costOfPack, _cardsPerPack);
 
     boxNumberToBox[_boxNumber] = _newBox;
@@ -85,7 +100,7 @@ contract KOTA is ERC721Token, Ownable {
     string _cardUri,
     address _artist,
     uint8 _artistShare
-  ) public onlyOwner {
+  ) public onlyRole(ROLE_CREATOR) {
     require(boxNumberToBox[_boxNumber].boxNumber > 0, "Box should exist");
 
     uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
@@ -109,7 +124,11 @@ contract KOTA is ERC721Token, Ownable {
    * @param _boxNumber box number of card to mint
    * @param _cardNumber card number of the card set to transfer
    */
-  function mint(address _to, uint256 _boxNumber, uint256 _cardNumber) public onlyOwner {
+  function mint(
+    address _to,
+    uint256 _boxNumber,
+    uint256 _cardNumber
+  ) public onlyRole(ROLE_MINTER) {
     uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
     require(boxCardNumberToCardSet[_boxCardNumber].boxNumber > 0); // ensure real card set
 
@@ -128,7 +147,7 @@ contract KOTA is ERC721Token, Ownable {
   /**
    * @dev Buys a pack of cards
    */
-  function buyPack(uint256 _boxNumber) public payable {
+  function buyPack(uint256 _boxNumber) public payable whenNotPaused {
     require(cardSetsInCirculation(_boxNumber) > 0);
     require(msg.value >= boxNumberToBox[_boxNumber].costOfPack);
 
@@ -146,7 +165,7 @@ contract KOTA is ERC721Token, Ownable {
   /**
    * @dev Redeem a pack of cards (via a credit)
    */
-  function redeemPack(uint256 _boxNumber) public {
+  function redeemPack(uint256 _boxNumber) public whenNotPaused {
     require(boxNumberToAccountCredits[_boxNumber][msg.sender] > 0);
 
     // remove credit

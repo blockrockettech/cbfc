@@ -1,17 +1,13 @@
 <template>
-  <div v-if="assetsPurchasedByAccount" class="row justify-content-sm-center">
-    <div class="col col-sm-6">
-      <div class="card shadow-sm mb-3">
-        <img class="card-img-top" :src="`https://ipfs.infura.io/ipfs/${lookupBoxCardSet(tokenId)[5]}/image`" :alt="web3.utils.toAscii(lookupBoxCardSet(tokenId)[4])"/>
+  <div v-if="assetsPurchasedByAccount" class="row">
+    <div class="col col-auto mx-auto">
+      <div class="card shadow-sm">
+        <img class="card-img-top" :src="`${lookupBoxCardSet(tokenId)[8].image}`" :alt="web3.utils.toAscii(lookupBoxCardSet(tokenId)[4])"/>
         <div class="card-body">
-          <div class="row">
-            <div class="col">
-              <h5 class="card-title">
-                {{ web3.utils.toAscii(lookupBoxCardSet(tokenId)[4]) }}
-                <span class="badge badge-primary float-right">{{ tokenId.toString(10) }}</span>
-              </h5>
-            </div>
-          </div>
+          <span class="badge badge-primary float-right">{{ tokenId.toString(10) }}</span>
+          <h5 class="card-title m-3">
+            {{ web3.utils.toAscii(lookupBoxCardSet(tokenId)[4]) }}
+          </h5>
         </div>
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
@@ -67,4 +63,9 @@
 </script>
 
 <style scoped lang="scss">
+  .card {
+    width: 20rem;
+    border-radius: 0;
+    border: 0;
+  }
 </style>

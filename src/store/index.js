@@ -7,6 +7,7 @@ import Web3 from 'web3';
 import createLogger from 'vuex/dist/logger';
 import { getEtherscanAddress, getNetIdString } from '../utils';
 import contract from 'truffle-contract';
+import axios from 'axios';
 
 import kotaJson from '../../build/contracts/KOTA.json';
 
@@ -144,7 +145,15 @@ const store = new Vuex.Store({
       }));
 
       let dataPromises = _.map(uniqueBoxCardNumbers, (boxCardNumber) => contract.boxCardNumberToCardSet(boxCardNumber));
-      const cardSets = await Promise.all(dataPromises);
+      let cardSets = await Promise.all(dataPromises);
+
+      let ipfsPromises = _.map(cardSets, (cardSet) => axios.get(`https://ipfs.infura.io/ipfs/${cardSet[5]}`));
+      const ipfsResults = await Promise.all(ipfsPromises);
+
+      cardSets = _.map(cardSets, (cardSet, i) => {
+        cardSet.push(ipfsResults[i].data);
+        return cardSet;
+      });
 
       const cardSetsObj = _.reduce(
         cardSets,
