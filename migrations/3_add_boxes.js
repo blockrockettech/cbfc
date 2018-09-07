@@ -7,29 +7,25 @@ let mnemonic = require('../mnemonic');
 
 module.exports = async function (deployer, network, accounts) {
 
-  console.log(`KOTA adding credts to ${network}...`);
+  console.log(`KOTA adding card sets to ${network}...`);
 
   const deployedKOTA = await KOTA.deployed();
 
   let _owner = accounts[0];
-  let _account1 = accounts[1];
-  let _account2 = accounts[2];
+  let _artist = accounts[1];
 
   if (network === 'ropsten' || network === 'rinkeby') {
     _owner = new HDWalletProvider(mnemonic, `https://${network}.infura.io/${infuraApikey}`, 0).getAddress();
-    _account1 = new HDWalletProvider(mnemonic, `https://${network}.infura.io/${infuraApikey}`, 1).getAddress();
-    _account2 = new HDWalletProvider(mnemonic, `https://${network}.infura.io/${infuraApikey}`, 2).getAddress();
   }
 
   if (network === 'live') {
     let mnemonicLive = require('../mnemonic_live');
     _owner = new HDWalletProvider(mnemonicLive, `https://mainnet.infura.io/${infuraApikey}`, 0).getAddress();
-    _account1 = new HDWalletProvider(mnemonicLive, `https://mainnet.infura.io/${infuraApikey}`, 1).getAddress();
-    _account2 = new HDWalletProvider(mnemonicLive, `https://mainnet.infura.io/${infuraApikey}`, 2).getAddress();
   }
 
   console.log(`_owner = ${_owner}`);
 
-  await deployedKOTA.addCredit(1000000, _account1, {from: _owner});
-  // await deployedKOTA.addCredit(2000000, _account2, {from: _owner});
+  await deployedKOTA.addBox(1000000, 'Stina Jones', 'Specimens', 'QmT9iCuqkB9i9U2KXm6YhH5bn6jY7YJwWJHMu1EAsTtB4o', 10000000000000000, 2);
+  // await deployedKOTA.addBox(2000000, 'KO', 'KO Kards', 'Qmbdf5KBGAkNeGthdZXdqzKM6J2FLvnqv1PRh74ehxo76L', 20000000000000000, 2);
+
 };

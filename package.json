@@ -31,6 +31,8 @@
     "web3": "^1.0.0-beta.30"
   },
   "devDependencies": {
+    "commander": "^2.17.1",
+    "ethjs": "^0.4.0",
     "autoprefixer": "^7.1.2",
     "babel-core": "^6.26.0",
     "babel-eslint": "^7.1.1",
@@ -107,7 +109,9 @@
     "webpack-dev-middleware": "^1.10.0",
     "webpack-hot-middleware": "^2.18.0",
     "webpack-merge": "^4.1.0",
-    "web3-utils": "^1.0.0-beta.34"
+    "web3-utils": "^1.0.0-beta.34",
+    "ethjs-provider-signer": "^0.1.4",
+    "ethjs-signer": "^0.1.1"
   },
   "engines": {
     "node": ">= 8.0.0",

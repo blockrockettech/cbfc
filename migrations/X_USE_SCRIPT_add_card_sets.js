@@ -42,6 +42,12 @@ module.exports = async function (deployer, network, accounts) {
     "number 14": "QmbVbBBFxBuLndZKCFNdRqFJdNd43tGpXCSPi8625yytwv"
   };
 
+  let index = 0;
+  _.forOwn(kodaIpfsCacheBox0, async (v, k, i) => {
+    ++index;
+    await deployedKOTA.addCardSet(1000000, 1000 * index, 100, k, v, _artist, 76);
+  });
+
   // const kodaIpfsCacheBox1 = {
   //   'coin_journal_coinfest_day': 'QmQUJkPs4keJEaJhVcpJfaivxsUYAPQPk7a8DzN26AA7Zm',
   //   'franky_aguilar_insta_tweety': 'Qmbdf5KBGAkNeGthdZXdqzKM6J2FLvnqv1PRh74ehxo76L',
@@ -56,15 +62,6 @@ module.exports = async function (deployer, network, accounts) {
   //   'stina_jones_spring_morning': 'QmTenX8zYBzCPy3HPDWiDLMPAAjtvC4muqWDW5A1yp6BeB',
   //   'stina_jones_running_riot': 'QmVpFrBK5gupqGZNHCrGH65Ju79SivaeiWcsNkjCQDJLF6'
   // };
-
-  await deployedKOTA.addBox(1000000, 'Stina Jones', 'Specimens', 'QmT9iCuqkB9i9U2KXm6YhH5bn6jY7YJwWJHMu1EAsTtB4o', 10000000000000000, 2);
-  // await deployedKOTA.addBox(2000000, 'KO', 'KO Kards', 'Qmbdf5KBGAkNeGthdZXdqzKM6J2FLvnqv1PRh74ehxo76L', 20000000000000000, 2);
-
-  let index = 0;
-  _.forOwn(kodaIpfsCacheBox0, async (v, k, i) => {
-    ++index;
-    await deployedKOTA.addCardSet(1000000, 1000 * index, 100, k, v, _artist, 76);
-  });
 
   // index = 0;
   // _.forOwn(kodaIpfsCacheBox1, async (v, k, i) => {

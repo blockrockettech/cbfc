@@ -34,56 +34,163 @@ library Strings {
   }
 }
 
-// File: openzeppelin-solidity/contracts/math/SafeMath.sol
+// File: openzeppelin-solidity/contracts/access/rbac/Roles.sol
 
 /**
- * @title SafeMath
- * @dev Math operations with safety checks that throw on error
+ * @title Roles
+ * @author Francisco Giordano (@frangio)
+ * @dev Library for managing addresses assigned to a Role.
+ * See RBAC.sol for example usage.
  */
-library SafeMath {
-
-  /**
-  * @dev Multiplies two numbers, throws on overflow.
-  */
-  function mul(uint256 a, uint256 b) internal pure returns (uint256 c) {
-    // Gas optimization: this is cheaper than asserting 'a' not being zero, but the
-    // benefit is lost if 'b' is also tested.
-    // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522
-    if (a == 0) {
-      return 0;
-    }
-
-    c = a * b;
-    assert(c / a == b);
-    return c;
+library Roles {
+  struct Role {
+    mapping (address => bool) bearer;
   }
 
   /**
-  * @dev Integer division of two numbers, truncating the quotient.
-  */
-  function div(uint256 a, uint256 b) internal pure returns (uint256) {
-    // assert(b > 0); // Solidity automatically throws when dividing by 0
-    // uint256 c = a / b;
-    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-    return a / b;
+   * @dev give an address access to this role
+   */
+  function add(Role storage _role, address _addr)
+    internal
+  {
+    _role.bearer[_addr] = true;
   }
 
   /**
-  * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
-  */
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    assert(b <= a);
-    return a - b;
+   * @dev remove an address' access to this role
+   */
+  function remove(Role storage _role, address _addr)
+    internal
+  {
+    _role.bearer[_addr] = false;
   }
 
   /**
-  * @dev Adds two numbers, throws on overflow.
-  */
-  function add(uint256 a, uint256 b) internal pure returns (uint256 c) {
-    c = a + b;
-    assert(c >= a);
-    return c;
+   * @dev check if an address has this role
+   * // reverts
+   */
+  function check(Role storage _role, address _addr)
+    internal
+    view
+  {
+    require(has(_role, _addr));
   }
+
+  /**
+   * @dev check if an address has this role
+   * @return bool
+   */
+  function has(Role storage _role, address _addr)
+    internal
+    view
+    returns (bool)
+  {
+    return _role.bearer[_addr];
+  }
+}
+
+// File: openzeppelin-solidity/contracts/access/rbac/RBAC.sol
+
+/**
+ * @title RBAC (Role-Based Access Control)
+ * @author Matt Condon (@Shrugs)
+ * @dev Stores and provides setters and getters for roles and addresses.
+ * Supports unlimited numbers of roles and addresses.
+ * See //contracts/mocks/RBACMock.sol for an example of usage.
+ * This RBAC method uses strings to key roles. It may be beneficial
+ * for you to write your own implementation of this interface using Enums or similar.
+ */
+contract RBAC {
+  using Roles for Roles.Role;
+
+  mapping (string => Roles.Role) private roles;
+
+  event RoleAdded(address indexed operator, string role);
+  event RoleRemoved(address indexed operator, string role);
+
+  /**
+   * @dev reverts if addr does not have role
+   * @param _operator address
+   * @param _role the name of the role
+   * // reverts
+   */
+  function checkRole(address _operator, string _role)
+    public
+    view
+  {
+    roles[_role].check(_operator);
+  }
+
+  /**
+   * @dev determine if addr has role
+   * @param _operator address
+   * @param _role the name of the role
+   * @return bool
+   */
+  function hasRole(address _operator, string _role)
+    public
+    view
+    returns (bool)
+  {
+    return roles[_role].has(_operator);
+  }
+
+  /**
+   * @dev add a role to an address
+   * @param _operator address
+   * @param _role the name of the role
+   */
+  function addRole(address _operator, string _role)
+    internal
+  {
+    roles[_role].add(_operator);
+    emit RoleAdded(_operator, _role);
+  }
+
+  /**
+   * @dev remove a role from an address
+   * @param _operator address
+   * @param _role the name of the role
+   */
+  function removeRole(address _operator, string _role)
+    internal
+  {
+    roles[_role].remove(_operator);
+    emit RoleRemoved(_operator, _role);
+  }
+
+  /**
+   * @dev modifier to scope access to a single role (uses msg.sender as addr)
+   * @param _role the name of the role
+   * // reverts
+   */
+  modifier onlyRole(string _role)
+  {
+    checkRole(msg.sender, _role);
+    _;
+  }
+
+  /**
+   * @dev modifier to scope access to a set of roles (uses msg.sender as addr)
+   * @param _roles the names of the roles to scope access to
+   * // reverts
+   *
+   * @TODO - when solidity supports dynamic arrays as arguments to modifiers, provide this
+   *  see: https://github.com/ethereum/solidity/issues/2467
+   */
+  // modifier onlyRoles(string[] _roles) {
+  //     bool hasAnyRole = false;
+  //     for (uint8 i = 0; i < _roles.length; i++) {
+  //         if (hasRole(msg.sender, _roles[i])) {
+  //             hasAnyRole = true;
+  //             break;
+  //         }
+  //     }
+
+  //     require(hasAnyRole);
+
+  //     _;
+  // }
 }
 
 // File: openzeppelin-solidity/contracts/ownership/Ownable.sol
@@ -150,6 +257,104 @@ contract Ownable {
   }
 }
 
+// File: openzeppelin-solidity/contracts/lifecycle/Pausable.sol
+
+/**
+ * @title Pausable
+ * @dev Base contract which allows children to implement an emergency stop mechanism.
+ */
+contract Pausable is Ownable {
+  event Pause();
+  event Unpause();
+
+  bool public paused = false;
+
+
+  /**
+   * @dev Modifier to make a function callable only when the contract is not paused.
+   */
+  modifier whenNotPaused() {
+    require(!paused);
+    _;
+  }
+
+  /**
+   * @dev Modifier to make a function callable only when the contract is paused.
+   */
+  modifier whenPaused() {
+    require(paused);
+    _;
+  }
+
+  /**
+   * @dev called by the owner to pause, triggers stopped state
+   */
+  function pause() public onlyOwner whenNotPaused {
+    paused = true;
+    emit Pause();
+  }
+
+  /**
+   * @dev called by the owner to unpause, returns to normal state
+   */
+  function unpause() public onlyOwner whenPaused {
+    paused = false;
+    emit Unpause();
+  }
+}
+
+// File: openzeppelin-solidity/contracts/math/SafeMath.sol
+
+/**
+ * @title SafeMath
+ * @dev Math operations with safety checks that throw on error
+ */
+library SafeMath {
+
+  /**
+  * @dev Multiplies two numbers, throws on overflow.
+  */
+  function mul(uint256 _a, uint256 _b) internal pure returns (uint256 c) {
+    // Gas optimization: this is cheaper than asserting 'a' not being zero, but the
+    // benefit is lost if 'b' is also tested.
+    // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522
+    if (_a == 0) {
+      return 0;
+    }
+
+    c = _a * _b;
+    assert(c / _a == _b);
+    return c;
+  }
+
+  /**
+  * @dev Integer division of two numbers, truncating the quotient.
+  */
+  function div(uint256 _a, uint256 _b) internal pure returns (uint256) {
+    // assert(_b > 0); // Solidity automatically throws when dividing by 0
+    // uint256 c = _a / _b;
+    // assert(_a == _b * c + _a % _b); // There is no case in which this doesn't hold
+    return _a / _b;
+  }
+
+  /**
+  * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+  */
+  function sub(uint256 _a, uint256 _b) internal pure returns (uint256) {
+    assert(_b <= _a);
+    return _a - _b;
+  }
+
+  /**
+  * @dev Adds two numbers, throws on overflow.
+  */
+  function add(uint256 _a, uint256 _b) internal pure returns (uint256 c) {
+    c = _a + _b;
+    assert(c >= _a);
+    return c;
+  }
+}
+
 // File: openzeppelin-solidity/contracts/introspection/ERC165.sol
 
 /**
@@ -178,6 +383,7 @@ interface ERC165 {
  * @dev Implements ERC165 using a lookup table.
  */
 contract SupportsInterfaceWithLookup is ERC165 {
+
   bytes4 public constant InterfaceId_ERC165 = 0x01ffc9a7;
   /**
    * 0x01ffc9a7 ===
@@ -228,6 +434,43 @@ contract SupportsInterfaceWithLookup is ERC165 {
  * @dev see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md
  */
 contract ERC721Basic is ERC165 {
+
+  bytes4 internal constant InterfaceId_ERC721 = 0x80ac58cd;
+  /*
+   * 0x80ac58cd ===
+   *   bytes4(keccak256('balanceOf(address)')) ^
+   *   bytes4(keccak256('ownerOf(uint256)')) ^
+   *   bytes4(keccak256('approve(address,uint256)')) ^
+   *   bytes4(keccak256('getApproved(uint256)')) ^
+   *   bytes4(keccak256('setApprovalForAll(address,bool)')) ^
+   *   bytes4(keccak256('isApprovedForAll(address,address)')) ^
+   *   bytes4(keccak256('transferFrom(address,address,uint256)')) ^
+   *   bytes4(keccak256('safeTransferFrom(address,address,uint256)')) ^
+   *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
+   */
+
+  bytes4 internal constant InterfaceId_ERC721Exists = 0x4f558e79;
+  /*
+   * 0x4f558e79 ===
+   *   bytes4(keccak256('exists(uint256)'))
+   */
+
+  bytes4 internal constant InterfaceId_ERC721Enumerable = 0x780e9d63;
+  /**
+   * 0x780e9d63 ===
+   *   bytes4(keccak256('totalSupply()')) ^
+   *   bytes4(keccak256('tokenOfOwnerByIndex(address,uint256)')) ^
+   *   bytes4(keccak256('tokenByIndex(uint256)'))
+   */
+
+  bytes4 internal constant InterfaceId_ERC721Metadata = 0x5b5e139f;
+  /**
+   * 0x5b5e139f ===
+   *   bytes4(keccak256('name()')) ^
+   *   bytes4(keccak256('symbol()')) ^
+   *   bytes4(keccak256('tokenURI(uint256)'))
+   */
+
   event Transfer(
     address indexed _from,
     address indexed _to,
@@ -318,10 +561,10 @@ library AddressUtils {
    * Returns whether the target address is a contract
    * @dev This function will return false if invoked during the constructor of a contract,
    * as the code is not actually created until after the constructor finishes.
-   * @param addr address to check
+   * @param _addr address to check
    * @return whether the target address is a contract
    */
-  function isContract(address addr) internal view returns (bool) {
+  function isContract(address _addr) internal view returns (bool) {
     uint256 size;
     // XXX Currently there is no better way to check if there is a contract in an address
     // than to check the size of the code at that address.
@@ -330,7 +573,7 @@ library AddressUtils {
     // TODO Check this again before the Serenity release, because all addresses will be
     // contracts then.
     // solium-disable-next-line security/no-inline-assembly
-    assembly { size := extcodesize(addr) }
+    assembly { size := extcodesize(_addr) }
     return size > 0;
   }
 
@@ -355,12 +598,12 @@ contract ERC721Receiver {
    * @notice Handle the receipt of an NFT
    * @dev The ERC721 smart contract calls this function on the recipient
    * after a `safetransfer`. This function MAY throw to revert and reject the
-   * transfer. Return of other than the magic value MUST result in the 
+   * transfer. Return of other than the magic value MUST result in the
    * transaction being reverted.
    * Note: the contract address is always the message sender.
    * @param _operator The address which called `safeTransferFrom` function
    * @param _from The address which previously owned the token
-   * @param _tokenId The NFT identifier which is being transfered
+   * @param _tokenId The NFT identifier which is being transferred
    * @param _data Additional data with no specified format
    * @return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
    */
@@ -382,26 +625,6 @@ contract ERC721Receiver {
  */
 contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
 
-  bytes4 private constant InterfaceId_ERC721 = 0x80ac58cd;
-  /*
-   * 0x80ac58cd ===
-   *   bytes4(keccak256('balanceOf(address)')) ^
-   *   bytes4(keccak256('ownerOf(uint256)')) ^
-   *   bytes4(keccak256('approve(address,uint256)')) ^
-   *   bytes4(keccak256('getApproved(uint256)')) ^
-   *   bytes4(keccak256('setApprovalForAll(address,bool)')) ^
-   *   bytes4(keccak256('isApprovedForAll(address,address)')) ^
-   *   bytes4(keccak256('transferFrom(address,address,uint256)')) ^
-   *   bytes4(keccak256('safeTransferFrom(address,address,uint256)')) ^
-   *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
-   */
-
-  bytes4 private constant InterfaceId_ERC721Exists = 0x4f558e79;
-  /*
-   * 0x4f558e79 ===
-   *   bytes4(keccak256('exists(uint256)'))
-   */
-
   using SafeMath for uint256;
   using AddressUtils for address;
 
@@ -420,24 +643,6 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
 
   // Mapping from owner to operator approvals
   mapping (address => mapping (address => bool)) internal operatorApprovals;
-
-  /**
-   * @dev Guarantees msg.sender is owner of the given token
-   * @param _tokenId uint256 ID of the token to validate its ownership belongs to msg.sender
-   */
-  modifier onlyOwnerOf(uint256 _tokenId) {
-    require(ownerOf(_tokenId) == msg.sender);
-    _;
-  }
-
-  /**
-   * @dev Checks msg.sender can transfer a token, by being owner, approved, or operator
-   * @param _tokenId uint256 ID of the token to validate
-   */
-  modifier canTransfer(uint256 _tokenId) {
-    require(isApprovedOrOwner(msg.sender, _tokenId));
-    _;
-  }
 
   constructor()
     public
@@ -547,8 +752,8 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     uint256 _tokenId
   )
     public
-    canTransfer(_tokenId)
   {
+    require(isApprovedOrOwner(msg.sender, _tokenId));
     require(_from != address(0));
     require(_to != address(0));
 
@@ -577,7 +782,6 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     uint256 _tokenId
   )
     public
-    canTransfer(_tokenId)
   {
     // solium-disable-next-line arg-overflow
     safeTransferFrom(_from, _to, _tokenId, "");
@@ -602,7 +806,6 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     bytes _data
   )
     public
-    canTransfer(_tokenId)
   {
     transferFrom(_from, _to, _tokenId);
     // solium-disable-next-line arg-overflow
@@ -729,22 +932,6 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
  * @dev see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md
  */
 contract ERC721Token is SupportsInterfaceWithLookup, ERC721BasicToken, ERC721 {
-
-  bytes4 private constant InterfaceId_ERC721Enumerable = 0x780e9d63;
-  /**
-   * 0x780e9d63 ===
-   *   bytes4(keccak256('totalSupply()')) ^
-   *   bytes4(keccak256('tokenOfOwnerByIndex(address,uint256)')) ^
-   *   bytes4(keccak256('tokenByIndex(uint256)'))
-   */
-
-  bytes4 private constant InterfaceId_ERC721Metadata = 0x5b5e139f;
-  /**
-   * 0x5b5e139f ===
-   *   bytes4(keccak256('name()')) ^
-   *   bytes4(keccak256('symbol()')) ^
-   *   bytes4(keccak256('tokenURI(uint256)'))
-   */
 
   // Token name
   string internal name_;
@@ -873,17 +1060,20 @@ contract ERC721Token is SupportsInterfaceWithLookup, ERC721BasicToken, ERC721 {
   function removeTokenFrom(address _from, uint256 _tokenId) internal {
     super.removeTokenFrom(_from, _tokenId);
 
+    // To prevent a gap in the array, we store the last token in the index of the token to delete, and
+    // then delete the last slot.
     uint256 tokenIndex = ownedTokensIndex[_tokenId];
     uint256 lastTokenIndex = ownedTokens[_from].length.sub(1);
     uint256 lastToken = ownedTokens[_from][lastTokenIndex];
 
     ownedTokens[_from][tokenIndex] = lastToken;
-    ownedTokens[_from][lastTokenIndex] = 0;
+    // This also deletes the contents at the last position of the array
+    ownedTokens[_from].length--;
+
     // Note that this will handle single-element arrays. In that case, both tokenIndex and lastTokenIndex are going to
     // be zero. Then we can make sure that we will remove _tokenId from the ownedTokens list since we are first swapping
     // the lastToken to the first position, and then dropping the element placed in the last position of the list
 
-    ownedTokens[_from].length--;
     ownedTokensIndex[_tokenId] = 0;
     ownedTokensIndex[lastToken] = tokenIndex;
   }
@@ -934,8 +1124,11 @@ contract ERC721Token is SupportsInterfaceWithLookup, ERC721BasicToken, ERC721 {
 
 /**
 * @title KOTA aka KnownOrigin Trading Assets
+*
+* max 999 cards per box - if box interval is 1000000
+* max 999 minted per card - if card set interval is 1000
 */
-contract KOTA is ERC721Token, Ownable {
+contract KOTA is ERC721Token, RBAC, Pausable {
   using SafeMath for uint256;
 
   event CardMinted(address indexed _owner, uint256 indexed _tokenId, bytes32 _name, uint32 _mintTime);
@@ -945,55 +1138,121 @@ contract KOTA is ERC721Token, Ownable {
 
   string internal tokenBaseURI = "https://ipfs.infura.io/ipfs/";
 
-  uint256 public costOfPack = 0.01 ether;
-  uint8 constant public cardsPerPack = 4;
-
   uint256 public totalCardsInCirculation = 0;
   uint256 public totalCardsInCirculationSold = 0;
+  uint256 public totalWei = 0;
+
+  uint256 public defaultBoxNumber = 1000000;
 
   uint256 internal randNonce = 0;
 
-  mapping(address => uint) public credits;
+  mapping(uint256 => mapping(address => uint)) internal boxNumberToAccountCredits;
+
+  struct Box {
+    uint256 boxNumber;
+    string title;
+    string description;
+    string boxURI;
+    uint256 costOfPack;
+    uint8 cardsPerPack;
+  }
 
   struct CardSet {
+    uint256 boxNumber;
     uint256 cardNumber;
     uint256 totalSupply;
     uint256 minted;
     bytes32 cardName;
     string cardURI;
+    address artist;
+    uint8 artistShare;
   }
+  mapping(uint256 => Box) public boxNumberToBox;
 
-  mapping(uint256 => CardSet) public cardSets;
+  mapping(uint256 => CardSet) public boxCardNumberToCardSet;
 
-  CardSet[] public cardSetCirculation;
+  mapping(uint256 => CardSet[]) internal boxNumberToCardSetCirculation;
+  mapping(uint256 => uint256[]) internal boxNumberToCardNumbers;
 
-  constructor() public ERC721Token("KOTA", "KOTA") {}
+  mapping(uint256 => uint256) public boxNumberToCardsInCirculation;
+  mapping(uint256 => uint256) public boxNumberToCardsInCirculationSold;
+
+  uint256[] internal boxNumbers;
+
+  string constant ROLE_CREATOR = "ROLE_CREATOR";
+  string constant ROLE_MINTER = "ROLE_MINTER";
+
+  constructor() public ERC721Token("KOTA", "KOTA") {
+    addRole(msg.sender, ROLE_CREATOR);
+    addRole(msg.sender, ROLE_MINTER);
+  }
 
   // can buy direct from contract if you send enough ether
   function() public payable {
-    buyPack();
+    buyPack(defaultBoxNumber);
   }
 
-  function addCardSet(uint256 _cardNumber, uint256 _totalSupply, bytes32 _cardName, string _cardUri) public onlyOwner {
-    CardSet memory newCardSet = CardSet(_cardNumber, _totalSupply, 0, _cardName, _cardUri);
-    cardSets[_cardNumber] = newCardSet;
-    cardSetCirculation.push(newCardSet);
+  function addBox(
+    uint256 _boxNumber,
+    string _title,
+    string _description,
+    string _boxUri,
+    uint256 _costOfPack,
+    uint8 _cardsPerPack
+  ) public onlyRole(ROLE_CREATOR) {
+    Box memory _newBox = Box(_boxNumber, _title, _description, _boxUri, _costOfPack, _cardsPerPack);
 
+    boxNumberToBox[_boxNumber] = _newBox;
+    boxNumbers.push(_boxNumber);
+  }
+
+  function addCardSet(
+    uint256 _boxNumber,
+    uint256 _cardNumber,
+    uint256 _totalSupply,
+    bytes32 _cardName,
+    string _cardUri,
+    address _artist,
+    uint8 _artistShare
+  ) public onlyRole(ROLE_CREATOR) {
+    require(boxNumberToBox[_boxNumber].boxNumber > 0, "Box should exist");
+
+    uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
+    require(boxCardNumberToCardSet[_boxCardNumber].cardNumber == 0, "Card Set should not exist");
+
+    // add new card set by boxCardNumber
+    CardSet memory _newCardSet = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri, _artist, _artistShare);
+    boxCardNumberToCardSet[_boxCardNumber] = _newCardSet;
+
+    // add to box circulation
+    boxNumberToCardSetCirculation[_boxNumber].push(_newCardSet);
+    boxNumberToCardNumbers[_boxNumber].push(_cardNumber);
+
+    boxNumberToCardsInCirculation[_boxNumber] = boxNumberToCardsInCirculation[_boxNumber].add(_totalSupply);
     totalCardsInCirculation = totalCardsInCirculation.add(_totalSupply);
   }
 
   /**
    * @dev mints a single card
    * @param _to who will get the card
+   * @param _boxNumber box number of card to mint
    * @param _cardNumber card number of the card set to transfer
    */
-  function mint(address _to, uint256 _cardNumber) public onlyOwner {
-    CardSet storage cardSet = cardSets[_cardNumber];
+  function mint(
+    address _to,
+    uint256 _boxNumber,
+    uint256 _cardNumber
+  ) public onlyRole(ROLE_MINTER) {
+    uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
+    require(boxCardNumberToCardSet[_boxCardNumber].boxNumber > 0); // ensure real card set
+
+    CardSet storage cardSet = boxCardNumberToCardSet[_boxCardNumber];
 
     // don't transfer last card!
     // buyPack removes from circulation via index - we don't know index here...
     require(cardSet.minted.add(1) < cardSet.totalSupply);
 
+    boxNumberToCardsInCirculationSold[_boxNumber] = boxNumberToCardsInCirculationSold[_boxNumber].add(1);
     totalCardsInCirculationSold = totalCardsInCirculationSold.add(1);
 
     _mint(_to, cardSet);
@@ -1002,30 +1261,36 @@ contract KOTA is ERC721Token, Ownable {
   /**
    * @dev Buys a pack of cards
    */
-  function buyPack() public payable {
-    require(msg.value >= costOfPack);
+  function buyPack(uint256 _boxNumber) public payable whenNotPaused {
+    require(cardSetsInCirculation(_boxNumber) > 0);
+    require(msg.value >= boxNumberToBox[_boxNumber].costOfPack);
 
-    _randomPack();
+    _randomPack(_boxNumber);
 
     // reconcile payments
-    owner.transfer(costOfPack);
+    owner.transfer(boxNumberToBox[_boxNumber].costOfPack);
+    totalWei = totalWei.add(boxNumberToBox[_boxNumber].costOfPack);
 
     // give back the change - if any
-    msg.sender.transfer(msg.value - costOfPack);
+    msg.sender.transfer(msg.value - boxNumberToBox[_boxNumber].costOfPack);
     emit CardPackBought(msg.sender, uint32(now));
   }
 
   /**
    * @dev Redeem a pack of cards (via a credit)
    */
-  function redeemPack() public {
-    require(credits[msg.sender] > 0);
+  function redeemPack(uint256 _boxNumber) public whenNotPaused {
+    require(boxNumberToAccountCredits[_boxNumber][msg.sender] > 0);
 
-    _randomPack();
+    // remove credit
+    boxNumberToAccountCredits[_boxNumber][msg.sender] = boxNumberToAccountCredits[_boxNumber][msg.sender].sub(1);
+
+    _randomPack(_boxNumber);
 
     emit CardPackRedeemed(msg.sender, uint32(now));
   }
 
+  // FIXME think about this...
   function burn(uint256 _tokenId) public {
     super._burn(msg.sender, _tokenId);
   }
@@ -1039,10 +1304,26 @@ contract KOTA is ERC721Token, Ownable {
   }
 
   /**
-   * @dev number of card sets
+   * @dev All box numbers
    */
-  function cardSetsInCirculation() public view returns (uint256 _cardSetCirculationLength) {
-    return cardSetCirculation.length;
+  function allBoxNumbers() public view returns (uint256[] _boxNumbers) {
+    return boxNumbers;
+  }
+
+  /**
+   * @dev number of card sets in circulation for a box
+   * @param _boxNumber box number of card sets
+   */
+  function cardSetsInCirculation(uint256 _boxNumber) public view returns (uint256 _cardSetCirculationLength) {
+    return boxNumberToCardSetCirculation[_boxNumber].length;
+  }
+
+  /**
+   * @dev card numbers for a box
+   * @param _boxNumber box number of card sets
+   */
+  function cardNumbersOf(uint256 _boxNumber) public view returns (uint256[] _cardNumbersArray) {
+    return boxNumberToCardNumbers[_boxNumber];
   }
 
   /**
@@ -1054,21 +1335,22 @@ contract KOTA is ERC721Token, Ownable {
   }
 
   /**
-   * @dev Utility function changing the cost of the pack
+   * @dev Utility function to credit address with packs they can redeem
    * @dev Reverts if not called by owner
-   * @param _costOfPack cost in wei
+   * @param _boxNumber number of the box to credit
+   * @param _recipient receiver of credit
    */
-  function setCostOfPack(uint256 _costOfPack) external onlyOwner {
-    costOfPack = _costOfPack;
+  function addCredit(uint256 _boxNumber, address _recipient) external onlyOwner {
+    boxNumberToAccountCredits[_boxNumber][_recipient] = boxNumberToAccountCredits[_boxNumber][_recipient].add(1);
   }
 
   /**
-   * @dev Utility function to credit address with packs they can redeem
-   * @dev Reverts if not called by owner
+   * @dev Credits for account for box
+   * @param _boxNumber number of the box to credit
    * @param _recipient receiver of credit
    */
-  function addCredit(address _recipient) external onlyOwner {
-    credits[_recipient] = credits[_recipient].add(1);
+  function creditsOf(uint256 _boxNumber, address _recipient) public view returns (uint256 _credits) {
+    return boxNumberToAccountCredits[_boxNumber][_recipient];
   }
 
   /**
@@ -1089,32 +1371,42 @@ contract KOTA is ERC721Token, Ownable {
     tokenBaseURI = _newBaseURI;
   }
 
-  function _randomCardSetIndex(uint _index) internal returns (uint) {
-    require(_index > 0);
-
-    randNonce = randNonce.add(1);
-    bytes memory packed = abi.encodePacked(blockhash(block.number - _index), msg.sender, randNonce);
-    return uint256(keccak256(packed)) % cardSetsInCirculation();
+  /**
+   * @dev Allows management to update the default box number
+   * @dev Reverts if not called by owner
+   * @param _defaultBoxNumber new default box number
+   */
+  function setDefaultBoxNumber(uint256 _defaultBoxNumber) external onlyOwner {
+    defaultBoxNumber = _defaultBoxNumber;
   }
 
-  function _randomPack() internal {
+  function _randomPack(uint256 _boxNumber) internal {
     // thanks CryptoStrikers!
     require(msg.sender == tx.origin);
 
-    for (uint i = 0; i < cardsPerPack; i++) {
-      uint _index = _randomCardSetIndex(i + 1);
-      CardSet storage pickedSet = cardSetCirculation[_index];
+    for (uint i = 0; i < boxNumberToBox[_boxNumber].cardsPerPack; i++) {
+      uint _index = _randomCardSetIndex(_boxNumber, i + 1);
+      CardSet storage pickedSet = boxNumberToCardSetCirculation[_boxNumber][_index];
 
       _mint(msg.sender, pickedSet);
 
       // remove from circulation if minted == totalSupply
       if (pickedSet.minted == pickedSet.totalSupply) {
-        _removeCardSetAtIndex(_index);
+        _removeCardSetAtIndex(_boxNumber, _index);
         emit CardSetSoldOut(pickedSet.cardNumber, uint32(now));
       }
     }
 
-    totalCardsInCirculationSold = totalCardsInCirculationSold.add(cardsPerPack);
+    boxNumberToCardsInCirculationSold[_boxNumber] = boxNumberToCardsInCirculationSold[_boxNumber].add(boxNumberToBox[_boxNumber].cardsPerPack);
+    totalCardsInCirculationSold = totalCardsInCirculationSold.add(boxNumberToBox[_boxNumber].cardsPerPack);
+  }
+
+  function _randomCardSetIndex(uint256 _boxNumber, uint _index) internal returns (uint) {
+    require(_index > 0);
+
+    randNonce = randNonce.add(1);
+    bytes memory packed = abi.encodePacked(blockhash(block.number - _index), msg.sender, randNonce);
+    return uint256(keccak256(packed)) % cardSetsInCirculation(_boxNumber);
   }
 
   function _mint(address _to, CardSet storage _cardSet) internal {
@@ -1123,7 +1415,7 @@ contract KOTA is ERC721Token, Ownable {
     require(_cardSet.minted <= _cardSet.totalSupply);
 
     _cardSet.minted = _cardSet.minted.add(1);
-    uint256 cardSerialNumber = _cardSet.cardNumber.add(_cardSet.minted);
+    uint256 cardSerialNumber = _cardSet.boxNumber.add(_cardSet.cardNumber).add(_cardSet.minted);
 
     super._mint(_to, cardSerialNumber);
     super._setTokenURI(cardSerialNumber, _cardSet.cardURI);
@@ -1131,11 +1423,11 @@ contract KOTA is ERC721Token, Ownable {
     emit CardMinted(_to, cardSerialNumber, _cardSet.cardName, uint32(now));
   }
 
-  function _removeCardSetAtIndex(uint256 _index) internal {
-    uint lastIndex = cardSetCirculation.length - 1;
+  function _removeCardSetAtIndex(uint256 _boxNumber, uint256 _index) internal {
+    uint lastIndex = cardSetsInCirculation(_boxNumber) - 1;
     require(_index <= lastIndex);
 
-    cardSetCirculation[_index] = cardSetCirculation[lastIndex];
-    cardSetCirculation.length--;
+    boxNumberToCardSetCirculation[_boxNumber][_index] = boxNumberToCardSetCirculation[_boxNumber][lastIndex];
+    boxNumberToCardSetCirculation[_boxNumber].length--;
   }
 }
