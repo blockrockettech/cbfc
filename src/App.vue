@@ -3,7 +3,7 @@
     <header>
       <nav class="navbar navbar-expand-md navbar-dark fixed-top">
         <router-link :to="{ name: 'home' }" class="navbar-brand pl-5">
-          <img src="../static/Kota_logo_H-01.svg" style="max-height: 50px"/>
+          <img src="../static/Kota_logo_H-01.svg" class="kota-brand"/>
         </router-link>
 
         <ul class="navbar-nav mr-auto"></ul>
@@ -141,6 +141,10 @@
     font-size: 0.65rem;
   }
 
+  .kota-brand {
+    max-height: 50px;
+  }
+
   /* mobile only */
   @media screen and (max-width: 767px) {
     body {
@@ -155,6 +159,10 @@
 
     h1 {
       font-size: 1.5rem;
+    }
+
+    .kota-brand {
+      max-height: 20px;
     }
   }
 
