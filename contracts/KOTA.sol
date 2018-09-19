@@ -63,6 +63,9 @@ contract KOTA is ERC721Token, RBAC, Pausable {
   mapping(uint256 => uint256) public boxNumberToCardsInCirculation;
   mapping(uint256 => uint256) public boxNumberToCardsInCirculationSold;
 
+  // allows KOTA to award cards stars
+  mapping(uint256 => uint256) public tokenIdToStars;
+
   uint256[] internal boxNumbers;
 
   string constant ROLE_CREATOR = "ROLE_CREATOR";
@@ -111,7 +114,7 @@ contract KOTA is ERC721Token, RBAC, Pausable {
     boxCardNumberToCardSet[_boxCardNumber] = _newCardSet;
 
     // add to box circulation
-    boxNumberToCardSetCirculation[_boxNumber].push(_newCardSet);
+    boxNumberToCardSetCirculation[_boxNumber].push(_newCardSet); // FIXME - use flag to decide to add to circulation
     boxNumberToCardNumbers[_boxNumber].push(_cardNumber);
 
     boxNumberToCardsInCirculation[_boxNumber] = boxNumberToCardsInCirculation[_boxNumber].add(_totalSupply);
@@ -130,13 +133,13 @@ contract KOTA is ERC721Token, RBAC, Pausable {
     uint256 _cardNumber
   ) public onlyRole(ROLE_MINTER) {
     uint256 _boxCardNumber = _boxNumber.add(_cardNumber);
-    require(boxCardNumberToCardSet[_boxCardNumber].boxNumber > 0); // ensure real card set
+    require(boxCardNumberToCardSet[_boxCardNumber].boxNumber > 0, "Card set and Box must exist"); // ensure real card set
 
     CardSet storage cardSet = boxCardNumberToCardSet[_boxCardNumber];
 
     // don't transfer last card!
     // buyPack removes from circulation via index - we don't know index here...
-    require(cardSet.minted.add(1) < cardSet.totalSupply);
+    require(cardSet.minted.add(1) < cardSet.totalSupply, "Can't mint last card via mint method");
 
     boxNumberToCardsInCirculationSold[_boxNumber] = boxNumberToCardsInCirculationSold[_boxNumber].add(1);
     totalCardsInCirculationSold = totalCardsInCirculationSold.add(1);
@@ -148,8 +151,8 @@ contract KOTA is ERC721Token, RBAC, Pausable {
    * @dev Buys a pack of cards
    */
   function buyPack(uint256 _boxNumber) public payable whenNotPaused {
-    require(cardSetsInCirculation(_boxNumber) > 0);
-    require(msg.value >= boxNumberToBox[_boxNumber].costOfPack);
+    require(cardSetsInCirculation(_boxNumber) > 0, "Card sets must exits for Box");
+    require(msg.value >= boxNumberToBox[_boxNumber].costOfPack, "Value must exceed the cost of the pack");
 
     _randomPack(_boxNumber);
 
@@ -174,11 +177,6 @@ contract KOTA is ERC721Token, RBAC, Pausable {
     _randomPack(_boxNumber);
 
     emit CardPackRedeemed(msg.sender, uint32(now));
-  }
-
-  // FIXME think about this...
-  function burn(uint256 _tokenId) public {
-    super._burn(msg.sender, _tokenId);
   }
 
   /**
@@ -268,7 +266,7 @@ contract KOTA is ERC721Token, RBAC, Pausable {
 
   function _randomPack(uint256 _boxNumber) internal {
     // thanks CryptoStrikers!
-    require(msg.sender == tx.origin);
+    require(msg.sender == tx.origin, "Don't allow contracts to buy");
 
     for (uint i = 0; i < boxNumberToBox[_boxNumber].cardsPerPack; i++) {
       uint _index = _randomCardSetIndex(_boxNumber, i + 1);
@@ -297,8 +295,8 @@ contract KOTA is ERC721Token, RBAC, Pausable {
 
   function _mint(address _to, CardSet storage _cardSet) internal {
     // ensure valid card set
-    require(_cardSet.totalSupply > 0);
-    require(_cardSet.minted <= _cardSet.totalSupply);
+    require(_cardSet.totalSupply > 0, "Card set supply must be greater than zero");
+    require(_cardSet.minted <= _cardSet.totalSupply, "Card set must have cards left");
 
     _cardSet.minted = _cardSet.minted.add(1);
     uint256 cardSerialNumber = _cardSet.boxNumber.add(_cardSet.cardNumber).add(_cardSet.minted);
@@ -316,4 +314,6 @@ contract KOTA is ERC721Token, RBAC, Pausable {
     boxNumberToCardSetCirculation[_boxNumber][_index] = boxNumberToCardSetCirculation[_boxNumber][lastIndex];
     boxNumberToCardSetCirculation[_boxNumber].length--;
   }
+
+  // FIXME - ability to remove cardset by creator role
 }
