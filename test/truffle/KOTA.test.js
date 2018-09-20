@@ -184,6 +184,7 @@ contract.only('KOTA', function (accounts) {
       balance.should.be.bignumber.equal(4);
     });
 
+    // FIXME
     it('should remove cardset once supply is exhausted', async function () {
       const cardSetTotal = await this.token.cardSetsInCirculation(_boxOne);
       cardSetTotal.should.be.bignumber.equal(4);
@@ -205,6 +206,35 @@ contract.only('KOTA', function (accounts) {
     //     console.log(`RAND ${random}`);
     //   }
     // });
+  });
+
+  describe.only('buy packs via default function', function () {
+
+    let _costOfPack;
+    let _cardsPerPack;
+    beforeEach(async function () {
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, _cardSetNumberOneCardOneName, _cardSetNumberOneCardUri, _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberThree, 8, 'Three', 'Three', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberFour, 8, 'Four', 'Four', _artist, 76, {from: _owner}); // add card set
+
+      const _boxOneData = await this.token.boxNumberToBox(_boxOne);
+      _costOfPack = _boxOneData[4];
+      _cardsPerPack = _boxOneData[5];
+    });
+
+    it('should have 4 card sets in circulation', async function () {
+      const numberOfSets = await this.token.cardSetsInCirculation(_boxOne);
+      numberOfSets.should.be.bignumber.equal(4);
+    });
+
+
+    it('should own x cards after buying pack (via default method)', async function () {
+      await this.token.send(_costOfPack);
+
+      const balance = await this.token.balanceOf(_owner);
+      balance.should.be.bignumber.equal(4);
+    });
   });
 
   describe('remove packs when exhausted', function () {
