@@ -12,7 +12,8 @@
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "test/contracts": "test/test_truffle.sh",
     "test": "npm run test/contracts",
-    "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
+    "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
+    "coverage": "test/coverage.sh"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -41,6 +42,7 @@
     "babel-preset-stage-2": "^6.24.1",
     "babel-register": "^6.22.0",
     "bluebird": "^3.5.1",
+    "coveralls": "^3.0.1",
     "chai": "^3.5.0",
     "chai-as-promised": "^7.0.0",
     "chai-bignumber": "^2.0.0",
@@ -61,7 +63,7 @@
     "eslint-plugin-html": "^3.0.0",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^2.0.1",
-    "ethereumjs-testrpc": "^6.0.3",
+    "ganache-cli": "^6.1.6",
     "ethjs": "^0.4.0",
     "ethjs-provider-signer": "^0.1.4",
     "ethjs-signer": "^0.1.1",
@@ -98,7 +100,7 @@
     "shelljs": "^0.7.6",
     "sinon": "^2.1.0",
     "sinon-chai": "^2.8.0",
-    "solidity-coverage": "^0.4.12",
+    "solidity-coverage": "^0.5.11",
     "solium": "^1.1.8",
     "truffle": "^4.1.8",
     "truffle-flattener": "^1.2.5",

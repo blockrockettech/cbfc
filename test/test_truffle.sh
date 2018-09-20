@@ -7,24 +7,24 @@ set -o errexit
 trap cleanup EXIT
 
 cleanup() {
-  # Kill the testrpc instance that we started (if we started one and if it's still running).
-  if [ -n "$testrpc_pid" ] && ps -p $testrpc_pid > /dev/null; then
-    kill -9 $testrpc_pid
+  # Kill the ganache instance that we started (if we started one and if it's still running).
+  if [ -n "$ganache_pid" ] && ps -p $ganache_pid > /dev/null; then
+    kill -9 $ganache_pid
   fi
 }
 
 if [ "$SOLIDITY_COVERAGE" = true ]; then
-  testrpc_port=8555
+  ganache_port=8555
 else
-  testrpc_port=8546
+  ganache_port=8545
 fi
 
-testrpc_running() {
-  nc -z localhost "$testrpc_port"
+ganache_running() {
+  nc -z localhost "$ganache_port"
 }
 
-start_testrpc() {
-  # We define 11 accounts with balance 1M ether, needed for high-value tests.
+start_ganache() {
+  # We define 10 accounts with balance 1M ether, needed for high-value tests.
   local accounts=(
     --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501200,1000000000000000000000000"
     --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501201,1000000000000000000000000"
@@ -37,22 +37,30 @@ start_testrpc() {
     --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501208,1000000000000000000000000"
     --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501209,1000000000000000000000000"
     --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501210,1000000000000000000000000"
+    --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501211,1000000000000000000000000"
+    --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501212,1000000000000000000000000"
+    --account="0x2bdd21761a483f71054e14f5b827213567971c676928d9a1808cbfa4b7501213,1000000000000000000000000"
   )
 
   if [ "$SOLIDITY_COVERAGE" = true ]; then
-    node_modules/.bin/testrpc-sc --gasLimit 0xfffffffffff --port "$testrpc_port" "${accounts[@]}" > /dev/null &
+    node_modules/.bin/testrpc-sc --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}" > /dev/null &
   else
-    node_modules/.bin/testrpc --gasLimit 0xfffffffffff "${accounts[@]}" > /dev/null &
+    node_modules/.bin/ganache-cli --gasLimit 0xfffffffffff "${accounts[@]}" > /dev/null &
   fi
 
-  testrpc_pid=$!
+  ganache_pid=$!
 }
 
-if testrpc_running; then
-  echo "Using existing testrpc instance"
+if ganache_running; then
+  echo "Using existing ganache instance"
 else
-  echo "Starting our own testrpc instance"
-  start_testrpc
+  echo "Starting our own ganache CLI instance"
+  start_ganache
+fi
+
+if [ "$SOLC_NIGHTLY" = true ]; then
+  echo "Downloading solc nightly"
+  wget -q https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/soljson-nightly.js -O /tmp/soljson.js && find . -name soljson.js -exec cp /tmp/soljson.js {} \;
 fi
 
 if [ "$SOLIDITY_COVERAGE" = true ]; then
@@ -62,5 +70,5 @@ if [ "$SOLIDITY_COVERAGE" = true ]; then
     cat coverage/lcov.info | node_modules/.bin/coveralls
   fi
 else
-  node_modules/.bin/truffle test test/truffle/*
+  node_modules/.bin/truffle test "$@"
 fi

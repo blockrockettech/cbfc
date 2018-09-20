@@ -1,6 +1,7 @@
 const assertRevert = require('../helpers/assertRevert');
 const etherToWei = require('../helpers/etherToWei');
 const bytes32ToString = require('../helpers/bytes32ToString');
+const bytes32ToStringReplaceNull = require('../helpers/bytes32ToStringReplaceNull');
 
 const BigNumber = web3.BigNumber;
 
@@ -27,6 +28,10 @@ contract.only('KOTA', function (accounts) {
   const _cardSetNumberTwo = 2000;
   const _cardSetNumberThree = 3000;
   const _cardSetNumberFour = 4000;
+
+  const _cardSetNumberOneSerialOne = 1001001;
+  const _cardSetNumberOneCardOneName = 'OneName';
+  const _cardSetNumberOneCardUri = '0nE';
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -89,7 +94,7 @@ contract.only('KOTA', function (accounts) {
     let _costOfPack;
     let _cardsPerPack;
     beforeEach(async function () {
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, _cardSetNumberOneCardOneName, _cardSetNumberOneCardUri, _artist, 76, {from: _owner}); // add card set
 
       const _boxOneData = await this.token.boxNumberToBox(_boxOne);
       _costOfPack = _boxOneData[4];
@@ -115,7 +120,7 @@ contract.only('KOTA', function (accounts) {
   describe('ensure card sets can be added', function () {
 
     beforeEach(async function () {
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, _cardSetNumberOneCardOneName, _cardSetNumberOneCardUri, _artist, 76, {from: _owner}); // add card set
     });
 
     it('should have 2 card sets in circulation', async function () {
@@ -136,8 +141,8 @@ contract.only('KOTA', function (accounts) {
       cardSetOne[1].toNumber().should.be.equal(_cardSetNumberOne);
       cardSetOne[2].toNumber().should.be.equal(8);
       cardSetOne[3].toNumber().should.be.equal(0);
-      bytes32ToString(cardSetOne[4]).should.be.equal('One\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000');
-      cardSetOne[5].should.be.equal('One');
+      bytes32ToStringReplaceNull(cardSetOne[4]).should.be.equal(`${_cardSetNumberOneCardOneName}`);
+      cardSetOne[5].should.be.equal(_cardSetNumberOneCardUri);
       cardSetOne[6].should.be.equal(_artist);
       cardSetOne[7].should.be.bignumber.equal(76);
     });
@@ -156,7 +161,7 @@ contract.only('KOTA', function (accounts) {
     let _costOfPack;
     let _cardsPerPack;
     beforeEach(async function () {
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, _cardSetNumberOneCardOneName, _cardSetNumberOneCardUri, _artist, 76, {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', _artist, 76, {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberThree, 8, 'Three', 'Three', _artist, 76, {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberFour, 8, 'Four', 'Four', _artist, 76, {from: _owner}); // add card set
@@ -207,7 +212,7 @@ contract.only('KOTA', function (accounts) {
     let _cardsPerPack;
     beforeEach(async function () {
 
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 4, _cardSetNumberOneCardOneName, _cardSetNumberOneCardUri, _artist, 76, {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 4, 'Two', 'Two', _artist, 76, {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberThree, 4, 'Three', 'Three', _artist, 76, {from: _owner}); // add card set
 
@@ -234,6 +239,9 @@ contract.only('KOTA', function (accounts) {
       await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
       await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
       await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
+
+      const totalWei = await this.token.totalWei();
+      totalWei.should.be.bignumber.equal(_costOfPack.mul(3));
 
       const balance = await this.token.balanceOf(_buyerOne);
       balance.should.be.bignumber.equal(12);
@@ -273,7 +281,7 @@ contract.only('KOTA', function (accounts) {
     let _cardsPerPack;
 
     beforeEach(async function () {
-      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, 'One', 'One', _artist, 76, {from: _owner}); // add card set
+      await this.token.addCardSet(_boxOne, _cardSetNumberOne, 8, _cardSetNumberOneCardOneName, _cardSetNumberOneCardUri, _artist, 76, {from: _owner}); // add card set
       await this.token.addCardSet(_boxOne, _cardSetNumberTwo, 8, 'Two', 'Two', _artist, 76, {from: _owner}); // add card set
 
       const _boxOneData = await this.token.boxNumberToBox(_boxOne);
@@ -334,6 +342,55 @@ contract.only('KOTA', function (accounts) {
       credits.should.be.bignumber.equal(0);
 
       await assertRevert(this.token.redeemPack(_boxOne, {from: _buyerOne}));
+    });
+  });
+
+  describe('getter, setters, utilities', function () {
+
+    beforeEach(async function () {
+      await this.token.addCardSet(
+        _boxOne,
+        _cardSetNumberOne,
+        8,
+        _cardSetNumberOneCardOneName,
+        _cardSetNumberOneCardUri,
+        _artist,
+        76,
+        {from: _owner}
+      ); // add card set
+    });
+
+    it('should have tokens', async function () {
+      await this.token.mint(_buyerOne, _boxOne, _cardSetNumberOne, {from: _owner});
+      const hasTokens = await this.token.hasTokens(_buyerOne);
+      hasTokens.should.be.equal(true);
+    });
+
+    it('should have tokenURI', async function () {
+      await this.token.mint(_buyerOne, _boxOne, _cardSetNumberOne, {from: _owner});
+      const tokenUri = await this.token.tokenURI(_cardSetNumberOneSerialOne);
+      tokenUri.should.be.equal(`https://ipfs.infura.io/ipfs/${_cardSetNumberOneCardUri}`);
+    });
+
+    it('should set baseTokenURI', async function () {
+      await this.token.mint(_buyerOne, _boxOne, _cardSetNumberOne, {from: _owner});
+      const tokenUri = await this.token.tokenURI(_cardSetNumberOneSerialOne);
+      tokenUri.should.be.equal(`https://ipfs.infura.io/ipfs/${_cardSetNumberOneCardUri}`);
+
+      await this.token.setTokenBaseURI('https://abc.xyz/');
+
+      const newTokenUri = await this.token.tokenURI(_cardSetNumberOneSerialOne);
+      newTokenUri.should.be.equal(`https://abc.xyz/${_cardSetNumberOneCardUri}`);
+    });
+
+    it('should set defaultBoxNumber', async function () {
+      const defaultBoxNumber = await this.token.defaultBoxNumber();
+      defaultBoxNumber.should.be.bignumber.equal(1000000);
+
+      await this.token.setDefaultBoxNumber(2000000);
+
+      const newDefaultBoxNumber = await this.token.defaultBoxNumber();
+      newDefaultBoxNumber.should.be.bignumber.equal(2000000);
     });
   });
 });
