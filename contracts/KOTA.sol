@@ -9,7 +9,7 @@ import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 import 'openzeppelin-solidity/contracts/access/rbac/RBAC.sol';
 
 /**
-* @title KOTA aka KnownOrigin Trading Assets
+* @title KOTA aka KnownOrigin Trading
 *
 * max 999 cards per box - if box interval is 1000000
 * max 999 minted per card - if card set interval is 1000
