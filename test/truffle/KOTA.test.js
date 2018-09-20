@@ -109,11 +109,12 @@ contract.only('KOTA', function (accounts) {
 
       await this.token.buyPack(_boxOne, {value: _costOfPack, from: _buyerOne});
 
-      cardSetOne = await this.token.boxCardNumberToCardSet(_boxOne + _cardSetNumberOne);
+      const cardsInCirc = await this.token.cardSetsInCirculation(_boxOne);
+      cardsInCirc.should.be.bignumber.equal(0);
 
-      console.log(cardSetOne);
+      cardSetOne = await this.token.boxCardNumberToCardSet(_boxOne + _cardSetNumberOne);
       cardSetOne[2].toNumber().should.be.equal(4); // totalSupply
-      // cardSetOne[3].toNumber().should.be.equal(4); // minted // FIXME
+      cardSetOne[3].toNumber().should.be.equal(4); // minted
     });
   });
 

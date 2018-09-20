@@ -57,7 +57,7 @@ contract KOTA is ERC721Token, RBAC, Pausable {
 
   mapping(uint256 => CardSet) public boxCardNumberToCardSet;
 
-  mapping(uint256 => CardSet[]) internal boxNumberToCardSetCirculation;
+  mapping(uint256 => uint256[]) internal boxNumberToCardSetCirculation;
   mapping(uint256 => uint256[]) internal boxNumberToCardNumbers;
 
   mapping(uint256 => uint256) public boxNumberToCardsInCirculation;
@@ -89,9 +89,7 @@ contract KOTA is ERC721Token, RBAC, Pausable {
     uint256 _costOfPack,
     uint8 _cardsPerPack
   ) public onlyRole(ROLE_CREATOR) {
-    Box memory _newBox = Box(_boxNumber, _title, _description, _boxUri, _costOfPack, _cardsPerPack);
-
-    boxNumberToBox[_boxNumber] = _newBox;
+    boxNumberToBox[_boxNumber] = Box(_boxNumber, _title, _description, _boxUri, _costOfPack, _cardsPerPack);
     boxNumbers.push(_boxNumber);
   }
 
@@ -110,11 +108,10 @@ contract KOTA is ERC721Token, RBAC, Pausable {
     require(boxCardNumberToCardSet[_boxCardNumber].cardNumber == 0, "Card Set should not exist");
 
     // add new card set by boxCardNumber
-    CardSet memory _newCardSet = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri, _artist, _artistShare);
-    boxCardNumberToCardSet[_boxCardNumber] = _newCardSet;
+    boxCardNumberToCardSet[_boxCardNumber] = CardSet(_boxNumber, _cardNumber, _totalSupply, 0, _cardName, _cardUri, _artist, _artistShare);
 
-    // add to box circulation
-    boxNumberToCardSetCirculation[_boxNumber].push(_newCardSet); // FIXME - use flag to decide to add to circulation
+    // add to box circulation - only cards in circulation can be bought - all cards can be minted (if available)
+    boxNumberToCardSetCirculation[_boxNumber].push(_cardNumber); // FIXME - use flag to decide to add to circulation
     boxNumberToCardNumbers[_boxNumber].push(_cardNumber);
 
     boxNumberToCardsInCirculation[_boxNumber] = boxNumberToCardsInCirculation[_boxNumber].add(_totalSupply);
@@ -270,7 +267,10 @@ contract KOTA is ERC721Token, RBAC, Pausable {
 
     for (uint i = 0; i < boxNumberToBox[_boxNumber].cardsPerPack; i++) {
       uint _index = _randomCardSetIndex(_boxNumber, i + 1);
-      CardSet storage pickedSet = boxNumberToCardSetCirculation[_boxNumber][_index];
+
+      uint256 pickedCardSetNumber = boxNumberToCardSetCirculation[_boxNumber][_index];
+      uint256 _boxCardNumber = _boxNumber.add(pickedCardSetNumber);
+      CardSet storage pickedSet = boxCardNumberToCardSet[_boxCardNumber];
 
       _mint(msg.sender, pickedSet);
 
